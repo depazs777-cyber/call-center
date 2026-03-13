@@ -12,15 +12,25 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
 
 $request_uri = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
 
-// Base path handling (in case it's in a subdirectory like /callcenter)
-$base_path = '/callcenter';
-if (strpos($request_uri, $base_path) === 0) {
+// Base path handling dynamically
+$base_path = dirname($_SERVER['SCRIPT_NAME']);
+if ($base_path === '/' || $base_path === '\\') {
+    $base_path = '';
+}
+
+if (!empty($base_path) && strpos($request_uri, $base_path) === 0) {
     $request_uri = substr($request_uri, strlen($base_path));
 }
 
 // Ensure $request_uri starts with a slash
 if (empty($request_uri)) {
     $request_uri = '/';
+}
+
+// Redirect root to public/index.html
+if ($request_uri === '/' || $request_uri === '/index.php') {
+    require_once __DIR__ . '/public/index.html';
+    exit;
 }
 
 // Route API requests

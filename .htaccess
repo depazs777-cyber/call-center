@@ -2,12 +2,9 @@
     RewriteEngine On
 
     # If the requested filename exists, simply serve it.
-    # We only apply the rewrite if the file DOES NOT exist in the root (like uploads, or actual files)
-    # But since we want index.php to handle all api/ and frontend routes:
-
-    # Exclude the public folder assets if they exist (though index.php handles this now)
-    # RewriteCond %{REQUEST_FILENAME} !-f
-    # RewriteCond %{REQUEST_FILENAME} !-d
+    # This ensures that assets in public/ and uploads/ are served correctly
+    RewriteCond %{REQUEST_FILENAME} !-f
+    RewriteCond %{REQUEST_FILENAME} !-d
 
     # Rewrite everything to index.php
     RewriteRule ^(.*)$ index.php [QSA,L]

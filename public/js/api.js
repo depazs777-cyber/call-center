@@ -1,6 +1,7 @@
 // public/js/api.js
 
-const API_BASE_URL = '/api'; // Adjusted to match index.php routing
+// dynamically build the API base URL based on the current path to support subdirectories
+const API_BASE_URL = window.location.pathname.replace(/\/public\/index\.html$/, '').replace(/\/$/, '') + '/api';
 
 const getAuthHeaders = () => {
     const token = localStorage.getItem('jwt_token');
