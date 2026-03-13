@@ -12,13 +12,17 @@ try {
     $pdo = getDBConnection();
 
     if ($method === 'GET') {
-        $stmt = $pdo->query("SELECT clave, valor FROM settings WHERE clave IN ('voip_server', 'voip_port', 'voip_user', 'voip_pass')");
+        $stmt = $pdo->query("SELECT clave, valor FROM settings WHERE clave LIKE 'voip_%'");
         $settings = $stmt->fetchAll(PDO::FETCH_KEY_PAIR);
         json_response([
-            'servidor' => $settings['voip_server'] ?? '',
-            'puerto' => $settings['voip_port'] ?? '',
-            'usuario' => $settings['voip_user'] ?? '',
-            'contraseña' => $settings['voip_pass'] ?? ''
+            'voip_server' => $settings['voip_server'] ?? '',
+            'voip_port' => $settings['voip_port'] ?? '',
+            'voip_transport' => $settings['voip_transport'] ?? 'ws',
+            'voip_display_name' => $settings['voip_display_name'] ?? '',
+            'voip_username' => $settings['voip_username'] ?? '',
+            'voip_auth_user' => $settings['voip_auth_user'] ?? '',
+            'voip_password' => $settings['voip_password'] ?? '',
+            'voip_domain' => $settings['voip_domain'] ?? ''
         ]);
     }
     elseif ($method === 'POST') {
@@ -27,22 +31,32 @@ try {
         }
 
         $input = get_json_input();
-        $servidor = $input['servidor'] ?? '';
-        $puerto = $input['puerto'] ?? '';
-        $usuario = $input['usuario'] ?? '';
-        $contraseña = $input['contraseña'] ?? '';
 
         $updates = [
-            'voip_server' => $servidor,
-            'voip_port' => $puerto,
-            'voip_user' => $usuario,
-            'voip_pass' => $contraseña
+            'voip_server' => $input['voip_server'] ?? '',
+            'voip_port' => $input['voip_port'] ?? '',
+            'voip_transport' => $input['voip_transport'] ?? 'ws',
+            'voip_display_name' => $input['voip_display_name'] ?? '',
+            'voip_username' => $input['voip_username'] ?? '',
+            'voip_auth_user' => $input['voip_auth_user'] ?? '',
+            'voip_password' => $input['voip_password'] ?? '',
+            'voip_domain' => $input['voip_domain'] ?? ''
         ];
 
-        $stmt = $pdo->prepare("UPDATE settings SET valor = :valor WHERE clave = :clave");
+        $stmt_update = $pdo->prepare("UPDATE settings SET valor = :valor WHERE clave = :clave");
+        $stmt_insert = $pdo->prepare("INSERT INTO settings (clave, valor) VALUES (:clave, :valor)");
+
         $pdo->beginTransaction();
         foreach ($updates as $clave => $valor) {
-            $stmt->execute(['valor' => $valor, 'clave' => $clave]);
+            $stmt_update->execute(['valor' => $valor, 'clave' => $clave]);
+            if ($stmt_update->rowCount() == 0) {
+                // Si la clave no existía y no se actualizó, la insertamos
+                try {
+                    $stmt_insert->execute(['clave' => $clave, 'valor' => $valor]);
+                } catch (\PDOException $e) {
+                    // Ignore duplicate key errors if it was just identical value
+                }
+            }
         }
         $pdo->commit();
 

@@ -47,20 +47,39 @@ const renderAdminDashboard = async () => {
                     <form id="voip-form">
                         <div class="grid gap-6 mb-6 md:grid-cols-2">
                             <div>
-                                <label for="voip_server" class="block mb-2 text-sm font-medium text-gray-900">Servidor</label>
-                                <input type="text" id="voip_server" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5" required>
+                                <label for="voip_server" class="block mb-2 text-sm font-medium text-gray-900">Servidor SIP (Domain)</label>
+                                <input type="text" id="voip_server" placeholder="ej: srv2.recargavoip.com" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5" required>
                             </div>
                             <div>
-                                <label for="voip_port" class="block mb-2 text-sm font-medium text-gray-900">Puerto</label>
-                                <input type="text" id="voip_port" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5" required>
+                                <label for="voip_port" class="block mb-2 text-sm font-medium text-gray-900">Puerto WebSocket</label>
+                                <input type="number" id="voip_port" placeholder="ej: 8088" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5" required>
                             </div>
                             <div>
-                                <label for="voip_user" class="block mb-2 text-sm font-medium text-gray-900">Usuario (Admin/Test)</label>
-                                <input type="text" id="voip_user" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5">
+                                <label for="voip_transport" class="block mb-2 text-sm font-medium text-gray-900">Protocolo WebSocket</label>
+                                <select id="voip_transport" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5" required>
+                                    <option value="ws">ws (Sin cifrar)</option>
+                                    <option value="wss">wss (Cifrado)</option>
+                                </select>
                             </div>
                             <div>
-                                <label for="voip_pass" class="block mb-2 text-sm font-medium text-gray-900">Contraseña (Admin/Test)</label>
-                                <input type="password" id="voip_pass" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5">
+                                <label for="voip_display_name" class="block mb-2 text-sm font-medium text-gray-900">Display Name (Opcional)</label>
+                                <input type="text" id="voip_display_name" placeholder="ej: SENDEROS2" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5">
+                            </div>
+                            <div>
+                                <label for="voip_username" class="block mb-2 text-sm font-medium text-gray-900">Nombre de Usuario (User name)</label>
+                                <input type="text" id="voip_username" placeholder="ej: SENDEROS2" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5" required>
+                            </div>
+                            <div>
+                                <label for="voip_auth_user" class="block mb-2 text-sm font-medium text-gray-900">Usuario de autorización</label>
+                                <input type="text" id="voip_auth_user" placeholder="ej: SENDEROS2" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5" required>
+                            </div>
+                            <div>
+                                <label for="voip_password" class="block mb-2 text-sm font-medium text-gray-900">Contraseña SIP</label>
+                                <input type="password" id="voip_password" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5" required>
+                            </div>
+                            <div>
+                                <label for="voip_domain" class="block mb-2 text-sm font-medium text-gray-900">Dominio de destino (Opcional)</label>
+                                <input type="text" id="voip_domain" placeholder="ej: srv2.recargavoip.com (Dejar vacío para usar servidor SIP)" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5">
                             </div>
                         </div>
                         <button type="submit" class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm w-full sm:w-auto px-5 py-2.5 text-center">Guardar Configuración</button>
@@ -201,10 +220,14 @@ const renderAdminDashboard = async () => {
     document.getElementById('voip-form').addEventListener('submit', async (e) => {
         e.preventDefault();
         const settings = {
-            servidor: document.getElementById('voip_server').value,
-            puerto: document.getElementById('voip_port').value,
-            usuario: document.getElementById('voip_user').value,
-            contraseña: document.getElementById('voip_pass').value,
+            voip_server: document.getElementById('voip_server').value,
+            voip_port: document.getElementById('voip_port').value,
+            voip_transport: document.getElementById('voip_transport').value,
+            voip_display_name: document.getElementById('voip_display_name').value,
+            voip_username: document.getElementById('voip_username').value,
+            voip_auth_user: document.getElementById('voip_auth_user').value,
+            voip_password: document.getElementById('voip_password').value,
+            voip_domain: document.getElementById('voip_domain').value,
         };
         try {
             await api.updateSettings(settings);
@@ -275,6 +298,19 @@ const renderAdminDashboard = async () => {
     });
 };
 
+// Utility to escape HTML and prevent XSS (if not available globally yet)
+const escapeHTMLAdmin = (str) => {
+    if (!str) return '';
+    return str.toString().replace(/[&<>'"]/g,
+        tag => ({
+            '&': '&amp;',
+            '<': '&lt;',
+            '>': '&gt;',
+            "'": '&#39;',
+            '"': '&quot;'
+        }[tag]));
+};
+
 const loadUsers = async () => {
     try {
         const users = await api.getUsers();
@@ -284,9 +320,9 @@ const loadUsers = async () => {
             const tr = document.createElement('tr');
             tr.className = 'bg-white border-b';
             tr.innerHTML = `
-                <td class="px-6 py-4 font-medium text-gray-900">${u.nombre}</td>
-                <td class="px-6 py-4">${u.email}</td>
-                <td class="px-6 py-4 capitalize">${u.rol}</td>
+                <td class="px-6 py-4 font-medium text-gray-900">${escapeHTMLAdmin(u.nombre)}</td>
+                <td class="px-6 py-4">${escapeHTMLAdmin(u.email)}</td>
+                <td class="px-6 py-4 capitalize">${escapeHTMLAdmin(u.rol)}</td>
                 <td class="px-6 py-4">
                     <button onclick="deleteUser(${u.id})" class="font-medium text-red-600 hover:underline">Eliminar</button>
                 </td>
@@ -302,10 +338,14 @@ const loadSettings = async () => {
     try {
         const s = await api.getSettings();
         if (s) {
-            document.getElementById('voip_server').value = s.servidor || '';
-            document.getElementById('voip_port').value = s.puerto || '';
-            document.getElementById('voip_user').value = s.usuario || '';
-            document.getElementById('voip_pass').value = s.contraseña || '';
+            document.getElementById('voip_server').value = s.voip_server || '';
+            document.getElementById('voip_port').value = s.voip_port || '';
+            document.getElementById('voip_transport').value = s.voip_transport || 'ws';
+            document.getElementById('voip_display_name').value = s.voip_display_name || '';
+            document.getElementById('voip_username').value = s.voip_username || '';
+            document.getElementById('voip_auth_user').value = s.voip_auth_user || '';
+            document.getElementById('voip_password').value = s.voip_password || '';
+            document.getElementById('voip_domain').value = s.voip_domain || '';
         }
     } catch (e) {
         console.error("Failed to load settings", e);
@@ -319,7 +359,7 @@ const loadCampaignsForAdmin = async () => {
         const csvSel = document.getElementById('csv_camp_select');
 
         const opts = '<option value="">Seleccione campaña...</option>' +
-            campaigns.map(c => `<option value="${c.id}">${c.nombre}</option>`).join('');
+            campaigns.map(c => `<option value="${c.id}">${escapeHTMLAdmin(c.nombre)}</option>`).join('');
 
         scriptSel.innerHTML = opts;
         csvSel.innerHTML = opts;

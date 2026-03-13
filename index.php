@@ -12,12 +12,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
 
 $request_uri = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
 
-// Base path handling dynamically
-$base_path = dirname($_SERVER['SCRIPT_NAME']);
-if ($base_path === '/' || $base_path === '\\') {
+// For built-in PHP server handling
+if (php_sapi_name() === 'cli-server') {
     $base_path = '';
+} else {
+    // Base path handling dynamically
+    $base_path = dirname($_SERVER['SCRIPT_NAME']);
+    if ($base_path === '/' || $base_path === '\\') {
+        $base_path = '';
+    }
 }
 
+// Remove base path from request URI if it exists
 if (!empty($base_path) && strpos($request_uri, $base_path) === 0) {
     $request_uri = substr($request_uri, strlen($base_path));
 }
@@ -27,7 +33,7 @@ if (empty($request_uri)) {
     $request_uri = '/';
 }
 
-// Redirect root to public/index.html
+// Redirect root or index.php directly to public/index.html
 if ($request_uri === '/' || $request_uri === '/index.php') {
     require_once __DIR__ . '/public/index.html';
     exit;
@@ -56,7 +62,7 @@ if (preg_match('/^\/api\/(.*)$/', $request_uri, $matches)) {
 }
 
 // Serve frontend assets or main index.html for SPA
-$public_path = __DIR__ . '/public' . $request_uri;
+$public_path = __DIR__ . $request_uri;
 
 // Serve static files from /public directly if they exist
 if (file_exists($public_path) && is_file($public_path)) {

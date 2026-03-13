@@ -58,9 +58,21 @@ try {
             $adjunto_url = null;
             $grabacion_url = null;
 
+            // Validaciones de seguridad y tamaño (10MB max)
+            $max_size = 10 * 1024 * 1024;
+            $allowed_attachment_exts = ['pdf', 'txt', 'jpg', 'jpeg', 'png', 'doc', 'docx'];
+
             // Mover archivos subidos (si hay)
             if (isset($_FILES['adjunto']) && $_FILES['adjunto']['error'] === UPLOAD_ERR_OK) {
-                $ext = pathinfo($_FILES['adjunto']['name'], PATHINFO_EXTENSION);
+                if ($_FILES['adjunto']['size'] > $max_size) {
+                    json_response(['error' => 'El archivo adjunto es demasiado grande (máximo 10MB)'], 400);
+                }
+
+                $ext = strtolower(pathinfo($_FILES['adjunto']['name'], PATHINFO_EXTENSION));
+                if (!in_array($ext, $allowed_attachment_exts)) {
+                    json_response(['error' => 'Tipo de archivo adjunto no permitido'], 400);
+                }
+
                 $adjunto_name = 'adjunto_' . $call_id . '_' . time() . '.' . $ext;
                 $adjunto_path = $campaign_dir . '/' . $adjunto_name;
                 move_uploaded_file($_FILES['adjunto']['tmp_name'], $adjunto_path);
@@ -68,6 +80,15 @@ try {
             }
 
             if (isset($_FILES['grabacion']) && $_FILES['grabacion']['error'] === UPLOAD_ERR_OK) {
+                if ($_FILES['grabacion']['size'] > $max_size) {
+                    json_response(['error' => 'La grabación es demasiado grande (máximo 10MB)'], 400);
+                }
+                // Validar MIME type en lugar de solo extensión
+                $mime = mime_content_type($_FILES['grabacion']['tmp_name']);
+                if (strpos($mime, 'audio/') !== 0 && strpos($mime, 'video/webm') !== 0) {
+                     json_response(['error' => 'Formato de grabación inválido'], 400);
+                }
+
                 $grabacion_name = 'grabacion_' . $call_id . '_' . time() . '.webm'; // Asumiendo que MediaRecorder graba en WebM
                 $grabacion_path = $campaign_dir . '/' . $grabacion_name;
                 move_uploaded_file($_FILES['grabacion']['tmp_name'], $grabacion_path);

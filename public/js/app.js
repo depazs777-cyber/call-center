@@ -1,5 +1,18 @@
 // public/js/app.js
 
+// Utility to escape HTML and prevent XSS
+const escapeHTML = (str) => {
+    if (!str) return '';
+    return str.toString().replace(/[&<>'"]/g,
+        tag => ({
+            '&': '&amp;',
+            '<': '&lt;',
+            '>': '&gt;',
+            "'": '&#39;',
+            '"': '&quot;'
+        }[tag]));
+};
+
 const initApp = () => {
     const token = localStorage.getItem('jwt_token');
     const userDataStr = localStorage.getItem('user_data');
@@ -34,7 +47,7 @@ const setupNavbar = (userData) => {
     navbar.style.display = 'block';
 
     let linksHtml = `
-        <span class="text-sm mr-4">Hola, ${userData.nombre} (${userData.rol})</span>
+        <span class="text-sm mr-4">Hola, ${escapeHTML(userData.nombre)} (${escapeHTML(userData.rol)})</span>
         <a href="#dashboard" class="text-sm hover:text-blue-200">Panel</a>
     `;
 
@@ -89,14 +102,14 @@ window.showHistory = async () => {
             history.forEach(call => {
                 html += `
                     <tr class="bg-white border-b hover:bg-gray-50">
-                        <td class="px-6 py-4">${new Date(call.fecha_inicio).toLocaleString()}</td>
-                        <td class="px-6 py-4">${call.prospecto} (${call.telefono})</td>
-                        <td class="px-6 py-4">${call.asesor || 'Desconocido'}</td>
-                        <td class="px-6 py-4">${call.duracion || 0}s</td>
-                        <td class="px-6 py-4"><span class="px-2 py-1 bg-blue-100 text-blue-800 rounded-full text-xs">${call.estado}</span></td>
+                        <td class="px-6 py-4">${escapeHTML(new Date(call.fecha_inicio).toLocaleString())}</td>
+                        <td class="px-6 py-4">${escapeHTML(call.prospecto)} (${escapeHTML(call.telefono)})</td>
+                        <td class="px-6 py-4">${escapeHTML(call.asesor || 'Desconocido')}</td>
+                        <td class="px-6 py-4">${escapeHTML(call.duracion || 0)}s</td>
+                        <td class="px-6 py-4"><span class="px-2 py-1 bg-blue-100 text-blue-800 rounded-full text-xs">${escapeHTML(call.estado)}</span></td>
                         <td class="px-6 py-4 flex gap-2">
-                            ${call.grabacion_url ? `<a href="/${call.grabacion_url}" target="_blank" class="text-blue-600 hover:underline">Audio</a>` : ''}
-                            ${call.archivo_adjunto ? `<a href="/${call.archivo_adjunto}" target="_blank" class="text-green-600 hover:underline">Adjunto</a>` : ''}
+                            ${call.grabacion_url ? `<a href="/${escapeHTML(call.grabacion_url)}" target="_blank" class="text-blue-600 hover:underline">Audio</a>` : ''}
+                            ${call.archivo_adjunto ? `<a href="/${escapeHTML(call.archivo_adjunto)}" target="_blank" class="text-green-600 hover:underline">Adjunto</a>` : ''}
                         </td>
                     </tr>
                 `;

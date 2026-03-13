@@ -65,5 +65,9 @@ ON DUPLICATE KEY UPDATE id=id;
 -- Insert default VoIP settings
 INSERT IGNORE INTO settings (clave, valor) VALUES ('voip_server', '');
 INSERT IGNORE INTO settings (clave, valor) VALUES ('voip_port', '');
-INSERT IGNORE INTO settings (clave, valor) VALUES ('voip_user', '');
-INSERT IGNORE INTO settings (clave, valor) VALUES ('voip_pass', '');
+INSERT IGNORE INTO settings (clave, valor) VALUES ('voip_transport', 'ws');
+INSERT IGNORE INTO settings (clave, valor) VALUES ('voip_display_name', '');
+INSERT IGNORE INTO settings (clave, valor) VALUES ('voip_username', '');
+INSERT IGNORE INTO settings (clave, valor) VALUES ('voip_auth_user', '');
+INSERT IGNORE INTO settings (clave, valor) VALUES ('voip_password', '');
+INSERT IGNORE INTO settings (clave, valor) VALUES ('voip_domain', '');

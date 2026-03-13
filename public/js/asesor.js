@@ -5,6 +5,20 @@ let currentSession = null;
 let currentCallId = null;
 let mediaRecorder = null;
 let audioChunks = [];
+let voipSettings = null;
+
+// Utility to escape HTML and prevent XSS
+const escapeHTML = (str) => {
+    if (!str) return '';
+    return str.toString().replace(/[&<>'"]/g,
+        tag => ({
+            '&': '&amp;',
+            '<': '&lt;',
+            '>': '&gt;',
+            "'": '&#39;',
+            '"': '&quot;'
+        }[tag]));
+};
 
 const renderAsesorDashboard = async () => {
     const appContainer = document.getElementById('app-container');
@@ -139,9 +153,9 @@ const loadProspects = async (campaignId = null) => {
             li.innerHTML = `
                 <div class="flex items-center space-x-4">
                     <div class="flex-1 min-w-0">
-                        <p class="text-sm font-medium text-gray-900 truncate">${p.nombre}</p>
-                        <p class="text-sm text-gray-500 truncate">${p.telefono} • ${p.ciudad || 'Sin ciudad'}</p>
-                        <p class="text-xs text-blue-500 truncate mt-1">${p.campaña_nombre}</p>
+                        <p class="text-sm font-medium text-gray-900 truncate">${escapeHTML(p.nombre)}</p>
+                        <p class="text-sm text-gray-500 truncate">${escapeHTML(p.telefono)} • ${escapeHTML(p.ciudad || 'Sin ciudad')}</p>
+                        <p class="text-xs text-blue-500 truncate mt-1">${escapeHTML(p.campaña_nombre)}</p>
                     </div>
                 </div>
             `;
@@ -181,11 +195,11 @@ const selectProspect = async (prospect) => {
     try {
         const script = await api.getScript(prospect.campaign_id);
         if (script && script.contenido) {
-            // Reemplazar variables básicas si existen
-            let content = script.contenido
-                .replace(/\{nombre\}/gi, prospect.nombre)
-                .replace(/\{telefono\}/gi, prospect.telefono)
-                .replace(/\{ciudad\}/gi, prospect.ciudad || '');
+            // Reemplazar variables básicas si existen (escapadas para evitar XSS)
+            let content = escapeHTML(script.contenido)
+                .replace(/\{nombre\}/gi, escapeHTML(prospect.nombre))
+                .replace(/\{telefono\}/gi, escapeHTML(prospect.telefono))
+                .replace(/\{ciudad\}/gi, escapeHTML(prospect.ciudad || ''));
 
             // Format line breaks
             scriptDiv.innerHTML = content.replace(/\n/g, '<br>');
@@ -204,24 +218,29 @@ const selectProspect = async (prospect) => {
 
 const initVoIP = async () => {
     try {
-        const settings = await api.getSettings();
-        if (!settings || !settings.servidor) {
+        voipSettings = await api.getSettings();
+        if (!voipSettings || !voipSettings.voip_server || !voipSettings.voip_username) {
             console.warn("Configuración VoIP no encontrada o incompleta.");
             return;
         }
 
-        const uri = SIP.UserAgent.makeURI(`sip:${settings.usuario}@${settings.servidor}`);
+        const domain = voipSettings.voip_server;
+        const uri = SIP.UserAgent.makeURI(`sip:${voipSettings.voip_username}@${domain}`);
         if (!uri) throw new Error("URI SIP inválida");
 
+        const protocol = voipSettings.voip_transport || 'ws';
+        const wsServerUrl = `${protocol}://${domain}:${voipSettings.voip_port}`;
+
         const transportOptions = {
-            server: `wss://${settings.servidor}:${settings.puerto || '8089'}/ws`,
+            server: wsServerUrl,
         };
 
         ua = new SIP.UserAgent({
             uri: uri,
             transportOptions: transportOptions,
-            authorizationUsername: settings.usuario,
-            authorizationPassword: settings.contraseña,
+            authorizationUsername: voipSettings.voip_auth_user || voipSettings.voip_username,
+            authorizationPassword: voipSettings.voip_password,
+            displayName: voipSettings.voip_display_name || '',
             delegate: {
                 onConnect: () => console.log("SIP Connected"),
                 onDisconnect: (error) => console.log("SIP Disconnected", error),
@@ -233,7 +252,12 @@ const initVoIP = async () => {
         });
 
         await ua.start();
-        console.log("SIP UA Started successfully");
+
+        // Registrar en el servidor SIP para poder recibir llamadas y asegurar autenticación saliente
+        const registerer = new SIP.Registerer(ua);
+        await registerer.register();
+
+        console.log("SIP UA Started and Registered successfully");
 
     } catch (error) {
         console.error("Error inicializando VoIP:", error);
@@ -256,7 +280,8 @@ const startCallProcess = async (prospect) => {
 
         // 3. Start SIP Session
         if (ua && ua.isConnected()) {
-            const targetUri = SIP.UserAgent.makeURI(`sip:${prospect.telefono}@${ua.configuration.uri.host}`);
+            const targetDomain = (voipSettings && voipSettings.voip_domain) ? voipSettings.voip_domain : ua.configuration.uri.host;
+            const targetUri = SIP.UserAgent.makeURI(`sip:${prospect.telefono}@${targetDomain}`);
             if (!targetUri) throw new Error("URI destino inválida");
 
             currentSession = new SIP.Inviter(ua, targetUri, {
