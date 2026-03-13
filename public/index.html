@@ -4,6 +4,28 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Call Center - Fase 1</title>
+
+    <!-- Dynamically set the base tag so relative assets resolve correctly -->
+    <script>
+        (function() {
+            var base = document.createElement('base');
+            var path = window.location.pathname;
+
+            if (path.indexOf('/public/index.html') !== -1) {
+                // Accessed directly via /public/index.html
+                base.href = path.substring(0, path.indexOf('/public/index.html')) + '/';
+            } else if (path.endsWith('/')) {
+                // Accessed via directory e.g., /callcenter/
+                base.href = path;
+            } else {
+                // Accessed via path without trailing slash e.g., /callcenter
+                base.href = path + '/';
+            }
+
+            document.head.appendChild(base);
+        })();
+    </script>
+
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="public/css/style.css" rel="stylesheet">
@@ -28,10 +50,10 @@
     </main>
 
     <!-- Scripts -->
+    <script src="public/js/app.js"></script>
     <script src="public/js/api.js"></script>
     <script src="public/js/auth.js"></script>
     <script src="public/js/admin.js"></script>
     <script src="public/js/asesor.js"></script>
-    <script src="public/js/app.js"></script>
 </body>
 </html>

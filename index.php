@@ -62,9 +62,15 @@ if (preg_match('/^\/api\/(.*)$/', $request_uri, $matches)) {
 }
 
 // Serve frontend assets or main index.html for SPA
-$public_path = __DIR__ . $request_uri;
+// Map requests directly to the public directory
+$public_path = __DIR__ . '/public' . $request_uri;
 
-// Serve static files from /public directly if they exist
+// Fallback: If they requested /public/js/something directly, we might get /public/public/js/something
+if (strpos($request_uri, '/public/') === 0) {
+    $public_path = __DIR__ . $request_uri;
+}
+
+// Serve static files directly if they exist
 if (file_exists($public_path) && is_file($public_path)) {
     // Basic MIME type handling
     $ext = pathinfo($public_path, PATHINFO_EXTENSION);
