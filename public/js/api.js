@@ -1,0 +1,72 @@
+// public/js/api.js
+
+const API_BASE_URL = '/api'; // Adjusted to match index.php routing
+
+const getAuthHeaders = () => {
+    const token = localStorage.getItem('jwt_token');
+    return token ? { 'Authorization': `Bearer ${token}` } : {};
+};
+
+const apiFetch = async (endpoint, options = {}) => {
+    const defaultHeaders = {
+        'Content-Type': 'application/json',
+        ...getAuthHeaders()
+    };
+
+    if (options.body && options.body instanceof FormData) {
+        // fetch automatically sets content-type with boundary for FormData
+        delete defaultHeaders['Content-Type'];
+    }
+
+    const config = {
+        method: options.method || 'GET',
+        headers: {
+            ...defaultHeaders,
+            ...(options.headers || {})
+        },
+        ...options
+    };
+
+    try {
+        const response = await fetch(`${API_BASE_URL}${endpoint}`, config);
+
+        // Handle 204 No Content
+        if (response.status === 204) return null;
+
+        const data = await response.json();
+
+        if (!response.ok) {
+            if (response.status === 401) {
+                // Token expired or invalid
+                localStorage.removeItem('jwt_token');
+                localStorage.removeItem('user_data');
+                window.location.hash = '#login';
+                return Promise.reject(new Error('Session expired'));
+            }
+            throw new Error(data.error || 'API Error');
+        }
+
+        return data;
+    } catch (error) {
+        console.error('API request failed:', error);
+        throw error;
+    }
+};
+
+const api = {
+    login: (credentials) => apiFetch('/login', { method: 'POST', body: JSON.stringify(credentials) }),
+    getSettings: () => apiFetch('/settings'),
+    updateSettings: (settings) => apiFetch('/settings', { method: 'POST', body: JSON.stringify(settings) }),
+    getUsers: () => apiFetch('/users'),
+    createUser: (user) => apiFetch('/users', { method: 'POST', body: JSON.stringify(user) }),
+    deleteUser: (id) => apiFetch(`/users?id=${id}`, { method: 'DELETE' }),
+    getCampaigns: () => apiFetch('/campaigns'),
+    createCampaign: (campaign) => apiFetch('/campaigns', { method: 'POST', body: JSON.stringify(campaign) }),
+    getProspects: (campaignId) => apiFetch(campaignId ? `/prospects?campaign_id=${campaignId}` : '/prospects'),
+    uploadCSV: (formData) => apiFetch('/prospects/upload-csv', { method: 'POST', body: formData }),
+    getScript: (campaignId) => apiFetch(`/scripts?campaign_id=${campaignId}`),
+    saveScript: (data) => apiFetch('/scripts', { method: 'POST', body: JSON.stringify(data) }),
+    startCall: (prospectId) => apiFetch('/calls/start', { method: 'POST', body: JSON.stringify({ prospect_id: prospectId }) }),
+    endCall: (formData) => apiFetch('/calls/end', { method: 'POST', body: formData }),
+    getCallHistory: () => apiFetch('/calls/history')
+};
