@@ -105,8 +105,24 @@ window.showHistory = async () => {
                         <td class="px-6 py-4">${window.escapeHTML(call.duracion || 0)}s</td>
                         <td class="px-6 py-4"><span class="px-2 py-1 bg-blue-100 text-blue-800 rounded-full text-xs">${window.escapeHTML(call.estado)}</span></td>
                         <td class="px-6 py-4 flex gap-2">
-                            ${call.grabacion_url ? `<a href="/${window.escapeHTML(call.grabacion_url)}" target="_blank" class="text-blue-600 hover:underline">Audio</a>` : ''}
-                            ${call.archivo_adjunto ? `<a href="/${window.escapeHTML(call.archivo_adjunto)}" target="_blank" class="text-green-600 hover:underline">Adjunto</a>` : ''}
+                            ${call.grabacion_url ? (() => {
+                                let basePath = window.location.pathname.replace(/\/index\.php.*$/, '').replace(/\/+$/, '');
+                                // If basePath is empty or /, we just prepend /
+                                if (basePath === '') {
+                                    basePath = '';
+                                }
+                                const url = call.grabacion_url.startsWith('/') ? call.grabacion_url : basePath + '/' + call.grabacion_url;
+                                return `<a href="${window.escapeHTML(url)}" target="_blank" class="text-blue-600 hover:underline">Audio</a>`;
+                            })() : ''}
+                            ${call.archivo_adjunto ? (() => {
+                                let basePath = window.location.pathname.replace(/\/index\.php.*$/, '').replace(/\/+$/, '');
+                                // If basePath is empty or /, we just prepend /
+                                if (basePath === '') {
+                                    basePath = '';
+                                }
+                                const url = call.archivo_adjunto.startsWith('/') ? call.archivo_adjunto : basePath + '/' + call.archivo_adjunto;
+                                return `<a href="${window.escapeHTML(url)}" target="_blank" class="text-green-600 hover:underline">Adjunto</a>`;
+                            })() : ''}
                         </td>
                     </tr>
                 `;
