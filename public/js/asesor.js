@@ -7,19 +7,6 @@ let mediaRecorder = null;
 let audioChunks = [];
 let voipSettings = null;
 
-// Utility to escape HTML and prevent XSS
-const escapeHTML = (str) => {
-    if (!str) return '';
-    return str.toString().replace(/[&<>'"]/g,
-        tag => ({
-            '&': '&amp;',
-            '<': '&lt;',
-            '>': '&gt;',
-            "'": '&#39;',
-            '"': '&quot;'
-        }[tag]));
-};
-
 const renderAsesorDashboard = async () => {
     const appContainer = document.getElementById('app-container');
 
@@ -157,9 +144,9 @@ const loadProspects = async (campaignId = null) => {
             li.innerHTML = `
                 <div class="flex items-center space-x-4">
                     <div class="flex-1 min-w-0">
-                        <p class="text-sm font-medium text-gray-900 truncate">${escapeHTML(p.nombre)}</p>
-                        <p class="text-sm text-gray-500 truncate">${escapeHTML(p.telefono)} • ${escapeHTML(p.ciudad || 'Sin ciudad')}</p>
-                        <p class="text-xs text-blue-500 truncate mt-1">${escapeHTML(p.campaña_nombre)}</p>
+                        <p class="text-sm font-medium text-gray-900 truncate">${window.escapeHTML(p.nombre)}</p>
+                        <p class="text-sm text-gray-500 truncate">${window.escapeHTML(p.telefono)} • ${window.escapeHTML(p.ciudad || 'Sin ciudad')}</p>
+                        <p class="text-xs text-blue-500 truncate mt-1">${window.escapeHTML(p.campaña_nombre)}</p>
                     </div>
                 </div>
             `;
@@ -198,10 +185,10 @@ const selectProspect = async (prospect) => {
         const script = await api.getScript(prospect.campaign_id);
         if (script && script.contenido) {
             // Reemplazar variables básicas si existen (escapadas para evitar XSS)
-            let content = escapeHTML(script.contenido)
-                .replace(/\{nombre\}/gi, escapeHTML(prospect.nombre))
-                .replace(/\{telefono\}/gi, escapeHTML(prospect.telefono))
-                .replace(/\{ciudad\}/gi, escapeHTML(prospect.ciudad || ''));
+            let content = window.escapeHTML(script.contenido)
+                .replace(/\{nombre\}/gi, window.escapeHTML(prospect.nombre))
+                .replace(/\{telefono\}/gi, window.escapeHTML(prospect.telefono))
+                .replace(/\{ciudad\}/gi, window.escapeHTML(prospect.ciudad || ''));
 
             // Format line breaks
             scriptDiv.innerHTML = content.replace(/\n/g, '<br>');

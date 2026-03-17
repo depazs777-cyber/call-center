@@ -315,19 +315,6 @@ const renderAdminDashboard = async () => {
     });
 };
 
-// Utility to escape HTML and prevent XSS (if not available globally yet)
-const escapeHTMLAdmin = (str) => {
-    if (!str) return '';
-    return str.toString().replace(/[&<>'"]/g,
-        tag => ({
-            '&': '&amp;',
-            '<': '&lt;',
-            '>': '&gt;',
-            "'": '&#39;',
-            '"': '&quot;'
-        }[tag]));
-};
-
 const loadUsers = async () => {
     try {
         const users = await api.getUsers();
@@ -337,9 +324,9 @@ const loadUsers = async () => {
             const tr = document.createElement('tr');
             tr.className = 'bg-white border-b';
             tr.innerHTML = `
-                <td class="px-6 py-4 font-medium text-gray-900">${escapeHTMLAdmin(u.nombre)}</td>
-                <td class="px-6 py-4">${escapeHTMLAdmin(u.email)}</td>
-                <td class="px-6 py-4 capitalize">${escapeHTMLAdmin(u.rol)}</td>
+                <td class="px-6 py-4 font-medium text-gray-900">${window.escapeHTML(u.nombre)}</td>
+                <td class="px-6 py-4">${window.escapeHTML(u.email)}</td>
+                <td class="px-6 py-4 capitalize">${window.escapeHTML(u.rol)}</td>
                 <td class="px-6 py-4">
                     <button onclick='editUser(${JSON.stringify(u).replace(/'/g, "&#39;")})' class="font-medium text-blue-600 hover:underline mr-3">Editar</button>
                     <button onclick="deleteUser(${u.id})" class="font-medium text-red-600 hover:underline">Eliminar</button>
@@ -402,7 +389,7 @@ const loadCampaignsForAdmin = async () => {
         const csvSel = document.getElementById('csv_camp_select');
 
         const opts = '<option value="">Seleccione campaña...</option>' +
-            campaigns.map(c => `<option value="${c.id}">${escapeHTMLAdmin(c.nombre)}</option>`).join('');
+            campaigns.map(c => `<option value="${c.id}">${window.escapeHTML(c.nombre)}</option>`).join('');
 
         scriptSel.innerHTML = opts;
         csvSel.innerHTML = opts;

@@ -1,7 +1,7 @@
 // public/js/app.js
 
 // Utility to escape HTML and prevent XSS
-const escapeHTML = (str) => {
+window.escapeHTML = (str) => {
     if (!str) return '';
     return str.toString().replace(/[&<>'"]/g,
         tag => ({
@@ -47,7 +47,7 @@ const setupNavbar = (userData) => {
     navbar.style.display = 'block';
 
     let linksHtml = `
-        <span class="text-sm mr-4">Hola, ${escapeHTML(userData.nombre)} (${escapeHTML(userData.rol)})</span>
+        <span class="text-sm mr-4">Hola, ${window.escapeHTML(userData.nombre)} (${window.escapeHTML(userData.rol)})</span>
         <a href="#dashboard" class="text-sm hover:text-blue-200">Panel</a>
         <a href="#historial" class="text-sm hover:text-blue-200" onclick="showHistory()">Historial</a>
     `;
@@ -99,14 +99,14 @@ window.showHistory = async () => {
             history.forEach(call => {
                 html += `
                     <tr class="bg-white border-b hover:bg-gray-50">
-                        <td class="px-6 py-4">${escapeHTML(new Date(call.fecha_inicio).toLocaleString())}</td>
-                        <td class="px-6 py-4">${escapeHTML(call.prospecto)} (${escapeHTML(call.telefono)})</td>
-                        <td class="px-6 py-4">${escapeHTML(call.asesor || 'Desconocido')}</td>
-                        <td class="px-6 py-4">${escapeHTML(call.duracion || 0)}s</td>
-                        <td class="px-6 py-4"><span class="px-2 py-1 bg-blue-100 text-blue-800 rounded-full text-xs">${escapeHTML(call.estado)}</span></td>
+                        <td class="px-6 py-4">${window.escapeHTML(new Date(call.fecha_inicio).toLocaleString())}</td>
+                        <td class="px-6 py-4">${window.escapeHTML(call.prospecto)} (${window.escapeHTML(call.telefono)})</td>
+                        <td class="px-6 py-4">${window.escapeHTML(call.asesor || 'Desconocido')}</td>
+                        <td class="px-6 py-4">${window.escapeHTML(call.duracion || 0)}s</td>
+                        <td class="px-6 py-4"><span class="px-2 py-1 bg-blue-100 text-blue-800 rounded-full text-xs">${window.escapeHTML(call.estado)}</span></td>
                         <td class="px-6 py-4 flex gap-2">
-                            ${call.grabacion_url ? `<a href="/${escapeHTML(call.grabacion_url)}" target="_blank" class="text-blue-600 hover:underline">Audio</a>` : ''}
-                            ${call.archivo_adjunto ? `<a href="/${escapeHTML(call.archivo_adjunto)}" target="_blank" class="text-green-600 hover:underline">Adjunto</a>` : ''}
+                            ${call.grabacion_url ? `<a href="/${window.escapeHTML(call.grabacion_url)}" target="_blank" class="text-blue-600 hover:underline">Audio</a>` : ''}
+                            ${call.archivo_adjunto ? `<a href="/${window.escapeHTML(call.archivo_adjunto)}" target="_blank" class="text-green-600 hover:underline">Adjunto</a>` : ''}
                         </td>
                     </tr>
                 `;
