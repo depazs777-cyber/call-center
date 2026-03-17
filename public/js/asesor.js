@@ -251,7 +251,7 @@ const initVoIP = async () => {
     } catch (error) {
         console.error("Error inicializando VoIP:", error);
         // Fallback for UI if VoIP fails but we still want to test the flow
-        alert("Advertencia: No se pudo conectar al servidor VoIP. Podrás simular el flujo pero sin audio real.");
+        console.warn("Advertencia: No se pudo conectar al servidor VoIP. Podrás simular el flujo pero sin audio real.");
     }
 };
 
