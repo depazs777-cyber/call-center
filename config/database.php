@@ -7,10 +7,11 @@ define('DB_PASS', getenv('DB_PASS') ?: '');
 define('DB_NAME', getenv('DB_NAME') ?: 'callcenter');
 
 // Load JWT Secret from environment variable for security,
-// fallback to a randomly generated one for local dev so it doesn't get hardcoded
+// fallback to a static default one for local dev so tokens persist across requests.
+// Change this environment variable in production!
 $jwt_secret = getenv('JWT_SECRET');
 if (!$jwt_secret) {
-    $jwt_secret = bin2hex(random_bytes(32));
+    $jwt_secret = 'default_secret_key_for_dev_change_in_prod_123';
 }
 define('JWT_SECRET', $jwt_secret);
 
