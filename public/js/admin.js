@@ -26,7 +26,7 @@ const renderAdminDashboard = async () => {
             <div id="admin-tab-content">
                 <div class="p-4 rounded-lg bg-white shadow-md hidden" id="users" role="tabpanel" aria-labelledby="users-tab">
                     <h2 class="text-2xl font-bold mb-4">Gestión de Usuarios</h2>
-                    <button class="bg-green-500 text-white px-4 py-2 rounded mb-4" onclick="document.getElementById('user-modal').classList.remove('hidden')">Nuevo Usuario</button>
+                    <button class="bg-green-500 text-white px-4 py-2 rounded mb-4" onclick="openUserModal()">Nuevo Usuario</button>
                     <table class="w-full text-sm text-left text-gray-500">
                         <thead class="text-xs text-gray-700 uppercase bg-gray-50">
                             <tr>
@@ -111,7 +111,13 @@ const renderAdminDashboard = async () => {
                 </div>
 
                 <div class="p-4 rounded-lg bg-white shadow-md hidden" id="csv" role="tabpanel" aria-labelledby="csv-tab">
-                    <h2 class="text-2xl font-bold mb-4">Subir Prospectos (CSV)</h2>
+                    <div class="flex justify-between items-center mb-4">
+                        <h2 class="text-2xl font-bold">Subir Prospectos (CSV)</h2>
+                        <a href="data:text/csv;charset=utf-8,nombre,telefono,ciudad,email%0AJuan%20Perez,555-1234,Madrid,juan@ejemplo.com%0AMaria%20Gomez,555-5678,Barcelona,maria@ejemplo.com" download="plantilla_prospectos.csv" class="text-blue-600 hover:underline flex items-center">
+                            <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+                            Descargar plantilla CSV
+                        </a>
+                    </div>
                     <form id="csv-form" class="max-w-md">
                         <div class="mb-4">
                             <label class="block mb-2 text-sm font-medium text-gray-900" for="csv_camp_select">Campaña</label>
@@ -122,7 +128,7 @@ const renderAdminDashboard = async () => {
                         <div class="mb-4">
                             <label class="block mb-2 text-sm font-medium text-gray-900" for="csv_file">Archivo CSV</label>
                             <input class="block w-full text-sm text-gray-900 border border-gray-300 rounded-lg cursor-pointer bg-gray-50 focus:outline-none" id="csv_file" type="file" accept=".csv" required>
-                            <p class="mt-1 text-sm text-gray-500">Columnas requeridas: nombre, telefono</p>
+                            <p class="mt-1 text-sm text-gray-500">Columnas requeridas: nombre, telefono. Opcionales: ciudad, email.</p>
                         </div>
                         <button type="submit" class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm w-full sm:w-auto px-5 py-2.5 text-center">Subir Archivo</button>
                     </form>
@@ -136,13 +142,14 @@ const renderAdminDashboard = async () => {
             <div class="relative p-4 w-full max-w-md max-h-full m-auto">
                 <div class="relative bg-white rounded-lg shadow dark:bg-gray-700">
                     <div class="flex items-center justify-between p-4 md:p-5 border-b rounded-t dark:border-gray-600">
-                        <h3 class="text-xl font-semibold text-gray-900 dark:text-white">Nuevo Usuario</h3>
+                        <h3 class="text-xl font-semibold text-gray-900 dark:text-white" id="user-modal-title">Nuevo Usuario</h3>
                         <button type="button" class="end-2.5 text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8 ms-auto inline-flex justify-center items-center" onclick="document.getElementById('user-modal').classList.add('hidden')">
                             <svg class="w-3 h-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 14 14"><path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6"/></svg>
                         </button>
                     </div>
                     <div class="p-4 md:p-5">
                         <form class="space-y-4" id="new-user-form">
+                            <input type="hidden" id="edit_user_id">
                             <div>
                                 <label for="new_nombre" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Nombre</label>
                                 <input type="text" name="nombre" id="new_nombre" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5" required />
@@ -152,7 +159,7 @@ const renderAdminDashboard = async () => {
                                 <input type="email" name="email" id="new_email" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5" required />
                             </div>
                             <div>
-                                <label for="new_password" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Contraseña</label>
+                                <label for="new_password" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Contraseña <span id="pass-help" class="text-xs font-normal text-gray-500">(Dejar en blanco para no cambiar)</span></label>
                                 <input type="password" name="password" id="new_password" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5" required />
                             </div>
                             <div>
@@ -163,7 +170,7 @@ const renderAdminDashboard = async () => {
                                     <option value="admin">Admin</option>
                                 </select>
                             </div>
-                            <button type="submit" class="w-full text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center">Crear Usuario</button>
+                            <button type="submit" id="btn-save-user" class="w-full text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center">Crear Usuario</button>
                         </form>
                     </div>
                 </div>
@@ -200,17 +207,27 @@ const renderAdminDashboard = async () => {
     // Event Listeners
     document.getElementById('new-user-form').addEventListener('submit', async (e) => {
         e.preventDefault();
+
+        const id = document.getElementById('edit_user_id').value;
         const user = {
             nombre: document.getElementById('new_nombre').value,
             email: document.getElementById('new_email').value,
             password: document.getElementById('new_password').value,
             rol: document.getElementById('new_rol').value,
         };
+
         try {
-            await api.createUser(user);
+            if (id) {
+                user.id = id;
+                await api.updateUser(user);
+                alert('Usuario actualizado');
+            } else {
+                await api.createUser(user);
+                alert('Usuario creado');
+            }
+
             document.getElementById('user-modal').classList.add('hidden');
             document.getElementById('new-user-form').reset();
-            alert('Usuario creado');
             await loadUsers();
         } catch (err) {
             alert(err.message);
@@ -324,6 +341,7 @@ const loadUsers = async () => {
                 <td class="px-6 py-4">${escapeHTMLAdmin(u.email)}</td>
                 <td class="px-6 py-4 capitalize">${escapeHTMLAdmin(u.rol)}</td>
                 <td class="px-6 py-4">
+                    <button onclick='editUser(${JSON.stringify(u).replace(/'/g, "&#39;")})' class="font-medium text-blue-600 hover:underline mr-3">Editar</button>
                     <button onclick="deleteUser(${u.id})" class="font-medium text-red-600 hover:underline">Eliminar</button>
                 </td>
             `;
@@ -332,6 +350,31 @@ const loadUsers = async () => {
     } catch (error) {
         console.error("Failed to load users", error);
     }
+};
+
+window.openUserModal = () => {
+    document.getElementById('new-user-form').reset();
+    document.getElementById('edit_user_id').value = '';
+    document.getElementById('user-modal-title').textContent = 'Nuevo Usuario';
+    document.getElementById('btn-save-user').textContent = 'Crear Usuario';
+    document.getElementById('new_password').required = true;
+    document.getElementById('pass-help').classList.add('hidden');
+    document.getElementById('user-modal').classList.remove('hidden');
+};
+
+window.editUser = (user) => {
+    document.getElementById('new-user-form').reset();
+    document.getElementById('edit_user_id').value = user.id;
+    document.getElementById('new_nombre').value = user.nombre;
+    document.getElementById('new_email').value = user.email;
+    document.getElementById('new_rol').value = user.rol;
+
+    document.getElementById('user-modal-title').textContent = 'Editar Usuario';
+    document.getElementById('btn-save-user').textContent = 'Actualizar Usuario';
+    document.getElementById('new_password').required = false;
+    document.getElementById('pass-help').classList.remove('hidden');
+
+    document.getElementById('user-modal').classList.remove('hidden');
 };
 
 const loadSettings = async () => {

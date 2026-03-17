@@ -1,11 +1,18 @@
 <?php
 // config/database.php
 
-define('DB_HOST', 'localhost');
-define('DB_USER', 'root');
-define('DB_PASS', ''); // Set your DB password
-define('DB_NAME', 'callcenter');
-define('JWT_SECRET', 'this_is_a_very_secret_key_change_in_production_1234567890'); // Secret for JWT
+define('DB_HOST', getenv('DB_HOST') ?: 'localhost');
+define('DB_USER', getenv('DB_USER') ?: 'root');
+define('DB_PASS', getenv('DB_PASS') ?: '');
+define('DB_NAME', getenv('DB_NAME') ?: 'callcenter');
+
+// Load JWT Secret from environment variable for security,
+// fallback to a randomly generated one for local dev so it doesn't get hardcoded
+$jwt_secret = getenv('JWT_SECRET');
+if (!$jwt_secret) {
+    $jwt_secret = bin2hex(random_bytes(32));
+}
+define('JWT_SECRET', $jwt_secret);
 
 function getDBConnection() {
     $dsn = "mysql:host=" . DB_HOST . ";dbname=" . DB_NAME . ";charset=utf8mb4";

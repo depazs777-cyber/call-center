@@ -60,6 +60,7 @@ const api = {
     updateSettings: (settings) => apiFetch('/settings', { method: 'POST', body: JSON.stringify(settings) }),
     getUsers: () => apiFetch('/users'),
     createUser: (user) => apiFetch('/users', { method: 'POST', body: JSON.stringify(user) }),
+    updateUser: (user) => apiFetch('/users', { method: 'PUT', body: JSON.stringify(user) }),
     deleteUser: (id) => apiFetch(`/users?id=${id}`, { method: 'DELETE' }),
     getCampaigns: () => apiFetch('/campaigns'),
     createCampaign: (campaign) => apiFetch('/campaigns', { method: 'POST', body: JSON.stringify(campaign) }),

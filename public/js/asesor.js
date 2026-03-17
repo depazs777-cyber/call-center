@@ -63,39 +63,11 @@ const renderAsesorDashboard = async () => {
 
                     <div class="flex-grow flex gap-4 overflow-hidden mb-4">
                         <!-- Script Container -->
-                        <div class="w-1/2 flex flex-col border rounded-lg overflow-hidden bg-blue-50">
+                        <div class="w-full flex flex-col border rounded-lg overflow-hidden bg-blue-50">
                             <div class="bg-blue-100 px-4 py-2 border-b border-blue-200 font-semibold text-blue-800">Script de Llamada</div>
                             <div class="p-4 overflow-y-auto flex-grow text-sm text-gray-800" id="call-script">
                                 Cargando script...
                             </div>
-                        </div>
-
-                        <!-- Formulario de Finalización -->
-                        <div class="w-1/2 flex flex-col border rounded-lg p-4 bg-gray-50 overflow-y-auto" id="tipificacion-panel">
-                            <h3 class="font-semibold text-gray-800 mb-3">Tipificación y Cierre</h3>
-                            <form id="end-call-form" class="space-y-4 flex flex-col h-full">
-                                <div>
-                                    <label class="block mb-1 text-sm font-medium text-gray-900">Estado de Llamada</label>
-                                    <select id="call-status" class="bg-white border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5" required disabled>
-                                        <option value="">Seleccione estado...</option>
-                                        <option value="No contestó">No contestó</option>
-                                        <option value="Venta efectiva">Venta efectiva</option>
-                                        <option value="Cita agendada">Cita agendada</option>
-                                        <option value="Cliente no interesado">Cliente no interesado</option>
-                                        <option value="Buzón de voz">Buzón de voz</option>
-                                        <option value="Número equivocado">Número equivocado</option>
-                                    </select>
-                                </div>
-                                <div class="flex-grow">
-                                    <label class="block mb-1 text-sm font-medium text-gray-900">Comentarios</label>
-                                    <textarea id="call-comments" rows="3" class="block p-2.5 w-full text-sm text-gray-900 bg-white rounded-lg border border-gray-300 h-full resize-none" disabled placeholder="Notas sobre la llamada..."></textarea>
-                                </div>
-                                <div>
-                                    <label class="block mb-1 text-sm font-medium text-gray-900">Adjunto (opcional)</label>
-                                    <input type="file" id="call-attachment" class="block w-full text-sm text-gray-900 border border-gray-300 rounded-lg cursor-pointer bg-white focus:outline-none p-1" disabled>
-                                </div>
-                                <button type="submit" id="btn-save-call" class="w-full text-white bg-blue-600 hover:bg-blue-700 font-medium rounded-lg text-sm px-5 py-2.5 text-center disabled:opacity-50 disabled:cursor-not-allowed" disabled>Guardar y Siguiente</button>
-                            </form>
                         </div>
                     </div>
                 </div>
@@ -103,6 +75,38 @@ const renderAsesorDashboard = async () => {
                 <div id="no-call-panel" class="flex flex-col items-center justify-center h-full text-gray-400">
                     <svg class="w-24 h-24 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z"></path></svg>
                     <p class="text-xl">Seleccione un prospecto para iniciar</p>
+                </div>
+            </div>
+
+            <!-- Wrap-up Form Modal (Tipificación) -->
+            <div id="tipificacion-modal" tabindex="-1" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+                <div class="bg-white rounded-lg shadow-lg w-full max-w-md p-6">
+                    <h3 class="font-bold text-xl text-gray-800 mb-4 border-b pb-2">Finalizar Llamada</h3>
+                    <form id="end-call-form" class="space-y-4">
+                        <div>
+                            <label class="block mb-1 text-sm font-medium text-gray-900">Estado de Llamada</label>
+                            <select id="call-status" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5" required>
+                                <option value="">Seleccione estado...</option>
+                                <option value="No contestó">No contestó</option>
+                                <option value="Venta efectiva">Venta efectiva</option>
+                                <option value="Cita agendada">Cita agendada</option>
+                                <option value="Cliente no interesado">Cliente no interesado</option>
+                                <option value="Buzón de voz">Buzón de voz</option>
+                                <option value="Número equivocado">Número equivocado</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block mb-1 text-sm font-medium text-gray-900">Comentarios</label>
+                            <textarea id="call-comments" rows="3" class="block p-2.5 w-full text-sm text-gray-900 bg-gray-50 rounded-lg border border-gray-300 resize-none" placeholder="Notas sobre la llamada..."></textarea>
+                        </div>
+                        <div>
+                            <label class="block mb-1 text-sm font-medium text-gray-900">Adjunto (opcional)</label>
+                            <input type="file" id="call-attachment" class="block w-full text-sm text-gray-900 border border-gray-300 rounded-lg cursor-pointer bg-gray-50 focus:outline-none p-1">
+                        </div>
+                        <div class="pt-2 border-t flex justify-end">
+                            <button type="submit" id="btn-save-call" class="text-white bg-green-600 hover:bg-green-700 font-medium rounded-lg text-sm px-6 py-2.5">Guardar y Cerrar</button>
+                        </div>
+                    </form>
                 </div>
             </div>
 
@@ -184,9 +188,7 @@ const selectProspect = async (prospect) => {
     // Reset buttons and form
     document.getElementById('btn-call').classList.remove('hidden');
     document.getElementById('btn-hangup').classList.add('hidden');
-
-    const formInputs = document.querySelectorAll('#end-call-form input, #end-call-form select, #end-call-form textarea, #end-call-form button');
-    formInputs.forEach(el => el.disabled = true);
+    document.getElementById('tipificacion-modal').classList.add('hidden');
     document.getElementById('end-call-form').reset();
 
     // Load Script
@@ -342,21 +344,17 @@ const hangupCall = async () => {
     // 2. Stop Recording
     stopRecording();
 
-    // 3. Update UI to allow saving details
+    // 3. Update UI to show the wrap-up modal
     document.getElementById('btn-hangup').classList.add('hidden');
-
-    // Enable form to save details
-    const formInputs = document.querySelectorAll('#end-call-form input, #end-call-form select, #end-call-form textarea, #end-call-form button');
-    formInputs.forEach(el => el.disabled = false);
-
+    document.getElementById('tipificacion-modal').classList.remove('hidden');
     document.getElementById('call-status').focus();
 };
 
 const resetCallUI = () => {
     document.getElementById('btn-call').classList.remove('hidden');
     document.getElementById('btn-hangup').classList.add('hidden');
-    const formInputs = document.querySelectorAll('#end-call-form input, #end-call-form select, #end-call-form textarea, #end-call-form button');
-    formInputs.forEach(el => el.disabled = true);
+    document.getElementById('tipificacion-modal').classList.add('hidden');
+    document.getElementById('end-call-form').reset();
 };
 
 // MediaRecorder
@@ -417,9 +415,11 @@ const handleEndCallSubmit = async (e) => {
         document.getElementById('call-panel').classList.add('hidden');
         document.getElementById('call-panel').classList.remove('flex');
         document.getElementById('no-call-panel').classList.remove('hidden');
+        document.getElementById('tipificacion-modal').classList.add('hidden');
 
         document.getElementById('end-call-form').reset();
-        document.getElementById('btn-save-call').textContent = 'Guardar y Siguiente';
+        document.getElementById('btn-save-call').textContent = 'Guardar y Cerrar';
+        document.getElementById('btn-save-call').disabled = false;
 
         // Remove prospect from list (simulating queue processing)
         // In a real app we might just change its status or keep it in history.
@@ -429,7 +429,7 @@ const handleEndCallSubmit = async (e) => {
 
     } catch (err) {
         alert("Error al guardar: " + err.message);
-        document.getElementById('btn-save-call').textContent = 'Guardar y Siguiente';
+        document.getElementById('btn-save-call').textContent = 'Guardar y Cerrar';
         document.getElementById('btn-save-call').disabled = false;
     }
 };

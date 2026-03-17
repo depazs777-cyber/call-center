@@ -49,11 +49,8 @@ const setupNavbar = (userData) => {
     let linksHtml = `
         <span class="text-sm mr-4">Hola, ${escapeHTML(userData.nombre)} (${escapeHTML(userData.rol)})</span>
         <a href="#dashboard" class="text-sm hover:text-blue-200">Panel</a>
+        <a href="#historial" class="text-sm hover:text-blue-200" onclick="showHistory()">Historial</a>
     `;
-
-    if (userData.rol === 'admin' || userData.rol === 'director') {
-        linksHtml += `<a href="#historial" class="text-sm hover:text-blue-200" onclick="showHistory()">Historial</a>`;
-    }
 
     linksHtml += `
         <button onclick="logout()" class="bg-red-500 hover:bg-red-700 text-white text-sm py-1 px-3 rounded ml-4">
