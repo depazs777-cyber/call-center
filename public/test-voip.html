@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test de Conexión VoIP</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/sip.js@0.21.2/dist/sip.js"></script>
+</head>
+<body class="bg-gray-100 text-gray-800 p-8">
+    <div class="max-w-4xl mx-auto bg-white p-6 rounded-lg shadow-md">
+        <h1 class="text-2xl font-bold mb-4 text-blue-600">Herramienta de Prueba VoIP</h1>
+        <p class="mb-6 text-gray-600">Esta página te permite probar la conexión de tu servidor SIP.js directamente desde el navegador para verificar si la configuración funciona.</p>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <!-- Columna de Configuración -->
+            <div>
+                <h2 class="text-lg font-semibold mb-3 border-b pb-2">Configuración SIP</h2>
+                <form id="voip-test-form" class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium mb-1">Servidor SIP (Domain) <span class="text-red-500">*</span></label>
+                        <input type="text" id="test_voip_server" class="w-full border p-2 rounded text-sm" placeholder="ej: srv2.recargavoip.com" required>
+                    </div>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium mb-1">Puerto <span class="text-red-500">*</span></label>
+                            <input type="number" id="test_voip_port" class="w-full border p-2 rounded text-sm" placeholder="8088" required>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium mb-1">Protocolo <span class="text-red-500">*</span></label>
+                            <select id="test_voip_transport" class="w-full border p-2 rounded text-sm" required>
+                                <option value="ws">ws (Sin cifrar)</option>
+                                <option value="wss">wss (Cifrado)</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium mb-1">Nombre de Usuario <span class="text-red-500">*</span></label>
+                        <input type="text" id="test_voip_username" class="w-full border p-2 rounded text-sm" required>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium mb-1">Usuario de Autorización</label>
+                        <input type="text" id="test_voip_auth_user" class="w-full border p-2 rounded text-sm">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium mb-1">Contraseña SIP <span class="text-red-500">*</span></label>
+                        <input type="password" id="test_voip_password" class="w-full border p-2 rounded text-sm" required>
+                    </div>
+
+                    <div class="pt-4 flex gap-2">
+                        <button type="button" id="btn-load-config" class="bg-gray-200 hover:bg-gray-300 text-gray-800 px-4 py-2 rounded text-sm transition">Cargar desde BD</button>
+                        <button type="submit" id="btn-connect" class="flex-1 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded text-sm font-semibold transition">Probar Conexión</button>
+                        <button type="button" id="btn-disconnect" class="hidden flex-1 bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded text-sm font-semibold transition">Desconectar</button>
+                    </div>
+                </form>
+
+                <div id="call-panel" class="mt-6 border-t pt-4 hidden">
+                    <h2 class="text-lg font-semibold mb-3">Realizar Llamada de Prueba</h2>
+                    <div class="flex gap-2">
+                        <input type="text" id="test_call_number" class="flex-1 border p-2 rounded text-sm" placeholder="Número de teléfono destino">
+                        <button id="btn-call" class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded text-sm font-semibold transition">Llamar</button>
+                        <button id="btn-hangup" class="hidden bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded text-sm font-semibold transition">Colgar</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Columna de Logs -->
+            <div class="bg-gray-900 text-green-400 p-4 rounded-lg flex flex-col h-[500px] font-mono text-xs overflow-hidden">
+                <div class="flex justify-between items-center border-b border-gray-700 pb-2 mb-2">
+                    <h2 class="font-bold text-gray-100">Consola de Diagnóstico</h2>
+                    <button id="btn-clear-log" class="text-gray-400 hover:text-white">Limpiar</button>
+                </div>
+                <div id="log-container" class="flex-1 overflow-y-auto space-y-1">
+                    <div>Listo para iniciar prueba.</div>
+                </div>
+            </div>
+        </div>
+
+        <audio id="test-audio" class="hidden"></audio>
+    </div>
+
+    <script>
+        // Log utility
+        const logContainer = document.getElementById('log-container');
+        const log = (msg, type = 'info') => {
+            const div = document.createElement('div');
+            const time = new Date().toLocaleTimeString();
+            div.textContent = `[${time}] ${msg}`;
+
+            if (type === 'error') div.className = 'text-red-400';
+            if (type === 'success') div.className = 'text-green-300 font-bold';
+            if (type === 'warn') div.className = 'text-yellow-400';
+
+            logContainer.appendChild(div);
+            logContainer.scrollTop = logContainer.scrollHeight;
+        };
+
+        document.getElementById('btn-clear-log').addEventListener('click', () => {
+            logContainer.innerHTML = '<div>Consola limpiada.</div>';
+        });
+
+        // State
+        let ua = null;
+        let activeSession = null;
+
+        // Load config from backend API
+        document.getElementById('btn-load-config').addEventListener('click', async () => {
+            try {
+                log("Obteniendo configuración del servidor...", "info");
+                const token = localStorage.getItem('token');
+                if (!token) {
+                    log("Error: No estás logueado en el sistema. Inicia sesión en el Call Center primero.", "error");
+                    return;
+                }
+
+                const response = await fetch('/callcenter/api/settings.php?action=voip', {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+
+                if (!response.ok) throw new Error(`HTTP Error: ${response.status}`);
+                const data = await response.json();
+
+                if (data) {
+                    document.getElementById('test_voip_server').value = data.voip_server || '';
+                    document.getElementById('test_voip_port').value = data.voip_port || '';
+                    document.getElementById('test_voip_transport').value = data.voip_transport || 'ws';
+                    document.getElementById('test_voip_username').value = data.voip_username || '';
+                    document.getElementById('test_voip_auth_user').value = data.voip_auth_user || '';
+                    document.getElementById('test_voip_password').value = data.voip_password || '';
+                    log("Configuración cargada correctamente.", "success");
+                }
+            } catch (err) {
+                log(`Error cargando configuración: ${err.message}`, "error");
+            }
+        });
+
+        // Test Connection
+        document.getElementById('voip-test-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const server = document.getElementById('test_voip_server').value;
+            const port = document.getElementById('test_voip_port').value;
+            const transport = document.getElementById('test_voip_transport').value;
+            const username = document.getElementById('test_voip_username').value;
+            const authUser = document.getElementById('test_voip_auth_user').value || username;
+            const password = document.getElementById('test_voip_password').value;
+
+            if (ua) {
+                log("Cerrando conexión existente...", "warn");
+                await ua.stop();
+                ua = null;
+            }
+
+            try {
+                log("Inicializando SIP.js...", "info");
+
+                const uri = SIP.UserAgent.makeURI(`sip:${username}@${server}`);
+                if (!uri) throw new Error("URI generada es inválida.");
+
+                const wsServerUrl = `${transport}://${server}:${port}`;
+                log(`Intentando conectar a WebSocket: ${wsServerUrl}`, "info");
+
+                ua = new SIP.UserAgent({
+                    uri: uri,
+                    transportOptions: {
+                        server: wsServerUrl,
+                    },
+                    authorizationUsername: authUser,
+                    authorizationPassword: password,
+                    logLevel: 'debug', // Ver más detalles en la consola del navegador
+                    logConnector: (level, category, label, content) => {
+                        // Opcionalmente mandar logs de SIP.js a nuestra consola
+                        // log(`[SIP.js] ${content}`, 'info');
+                    },
+                    delegate: {
+                        onConnect: () => log("WebSocket Conectado exitosamente.", "success"),
+                        onDisconnect: (error) => {
+                            if (error) {
+                                log(`WebSocket Desconectado con error: ${error.message}`, "error");
+                            } else {
+                                log("WebSocket Desconectado.", "warn");
+                            }
+                            uiDisconnected();
+                        }
+                    }
+                });
+
+                log("Iniciando User Agent...", "info");
+                await ua.start();
+
+                log("Intentando registro en el servidor SIP...", "info");
+                const registerer = new SIP.Registerer(ua);
+
+                registerer.stateChange.addListener((newState) => {
+                    log(`Estado de Registro: ${newState}`, "info");
+                    if (newState === SIP.RegistererState.Registered) {
+                        log("¡Registro Exitoso! El sistema puede realizar y recibir llamadas.", "success");
+                        uiConnected();
+                    } else if (newState === SIP.RegistererState.Terminated || newState === SIP.RegistererState.Unregistered) {
+                        if (ua.isConnected()) {
+                            log("No registrado en el servidor SIP. Revisa usuario y contraseña.", "warn");
+                        }
+                    }
+                });
+
+                await registerer.register();
+
+            } catch (err) {
+                log(`Error Fatal: ${err.message}`, "error");
+                console.error(err);
+                uiDisconnected();
+            }
+        });
+
+        // Disconnect
+        document.getElementById('btn-disconnect').addEventListener('click', async () => {
+            if (ua) {
+                log("Desconectando...", "info");
+                await ua.stop();
+                ua = null;
+                uiDisconnected();
+            }
+        });
+
+        // Call logic
+        document.getElementById('btn-call').addEventListener('click', async () => {
+            if (!ua || !ua.isConnected()) {
+                log("Error: User Agent no está conectado.", "error");
+                return;
+            }
+
+            const targetNumber = document.getElementById('test_call_number').value;
+            if (!targetNumber) {
+                log("Ingresa un número para llamar.", "warn");
+                return;
+            }
+
+            const server = document.getElementById('test_voip_server').value;
+            const targetUri = SIP.UserAgent.makeURI(`sip:${targetNumber}@${server}`);
+
+            if (!targetUri) {
+                log("URI destino inválida.", "error");
+                return;
+            }
+
+            log(`Iniciando llamada a ${targetNumber}...`, "info");
+
+            try {
+                activeSession = new SIP.Inviter(ua, targetUri, {
+                    sessionDescriptionHandlerOptions: {
+                        constraints: { audio: true, video: false }
+                    }
+                });
+
+                activeSession.stateChange.addListener((newState) => {
+                    log(`Estado Llamada: ${newState}`, "info");
+
+                    if (newState === SIP.SessionState.Established) {
+                        log("¡Llamada Establecida! Deberías escuchar el audio ahora.", "success");
+
+                        const pc = activeSession.sessionDescriptionHandler.peerConnection;
+                        if (pc) {
+                            pc.ontrack = (event) => {
+                                const audioElement = document.getElementById('test-audio');
+                                if (event.streams && event.streams[0]) {
+                                    audioElement.srcObject = event.streams[0];
+                                } else {
+                                    const stream = new MediaStream();
+                                    stream.addTrack(event.track);
+                                    audioElement.srcObject = stream;
+                                }
+                                audioElement.play().catch(e => log(`Error autoplay audio: ${e}`, 'warn'));
+                            };
+                        }
+                    } else if (newState === SIP.SessionState.Terminated) {
+                        log("Llamada Finalizada.", "warn");
+                        uiCallEnded();
+                    }
+                });
+
+                uiCallStarted();
+                await activeSession.invite();
+
+            } catch (err) {
+                log(`Error iniciando llamada: ${err.message}`, "error");
+                uiCallEnded();
+            }
+        });
+
+        document.getElementById('btn-hangup').addEventListener('click', async () => {
+            if (activeSession) {
+                log("Colgando llamada...", "info");
+                try {
+                    switch(activeSession.state) {
+                        case SIP.SessionState.Establishing:
+                            await activeSession.cancel();
+                            break;
+                        case SIP.SessionState.Established:
+                            await activeSession.bye();
+                            break;
+                    }
+                } catch(e) {
+                    log(`Error colgando: ${e.message}`, "error");
+                }
+            }
+        });
+
+        // UI Helpers
+        function uiConnected() {
+            document.getElementById('btn-connect').classList.add('hidden');
+            document.getElementById('btn-disconnect').classList.remove('hidden');
+            document.getElementById('call-panel').classList.remove('hidden');
+        }
+
+        function uiDisconnected() {
+            document.getElementById('btn-connect').classList.remove('hidden');
+            document.getElementById('btn-disconnect').classList.add('hidden');
+            document.getElementById('call-panel').classList.add('hidden');
+            uiCallEnded();
+        }
+
+        function uiCallStarted() {
+            document.getElementById('btn-call').classList.add('hidden');
+            document.getElementById('btn-hangup').classList.remove('hidden');
+        }
+
+        function uiCallEnded() {
+            document.getElementById('btn-call').classList.remove('hidden');
+            document.getElementById('btn-hangup').classList.add('hidden');
+            activeSession = null;
+        }
+    </script>
+</body>
+</html>
