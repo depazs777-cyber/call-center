@@ -34,11 +34,9 @@ const initApp = () => {
         } else if (userData.rol === 'asesor') {
             renderAsesorDashboard();
         }
-    } else if (hash === '#historial') {
-        showHistory();
     } else {
-        // Enforce dashboard as default fallback for valid logged in users instead of admin dashboard
-        window.location.hash = '#dashboard';
+        // Fallback for unknown routes
+        renderAdminDashboard();
     }
 };
 

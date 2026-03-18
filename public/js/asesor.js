@@ -285,23 +285,26 @@ const startCallProcess = async (prospect) => {
                 }
             });
 
-            currentSession.delegate = {
-                onTrackAdded: () => {
-                    const remoteAudio = document.getElementById('remoteAudio');
+
+
+            currentSession.stateChange.addListener((newState) => {
+                if (newState === SIP.SessionState.Established) {
                     const pc = currentSession.sessionDescriptionHandler.peerConnection;
-                    const remoteStream = new MediaStream();
-                    pc.getReceivers().forEach(receiver => {
-                        if (receiver.track) remoteStream.addTrack(receiver.track);
-                    });
-                    remoteAudio.srcObject = remoteStream;
-                    remoteAudio.play();
-                },
-                onSessionDescriptionHandler: (sdh) => {
-                    // Here we could try to record the remote stream as well,
-                    // but MediaRecorder with getUserMedia captures local.
-                    // For a complete recording, WebRTC mixing is needed.
+                    if (pc) {
+                        pc.ontrack = (event) => {
+                            const remoteAudio = document.getElementById('remoteAudio');
+                            if (event.streams && event.streams[0]) {
+                                remoteAudio.srcObject = event.streams[0];
+                            } else {
+                                const stream = new MediaStream();
+                                stream.addTrack(event.track);
+                                remoteAudio.srcObject = stream;
+                            }
+                            remoteAudio.play();
+                        };
+                    }
                 }
-            };
+            });
 
             await currentSession.invite();
         } else {
