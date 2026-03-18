@@ -265,10 +265,16 @@ const startCallProcess = async (prospect) => {
         currentCallId = res.call_id;
 
         // 2. Start Local Recording
-        await startRecording();
+        const recordingStarted = await startRecording();
+        if (!recordingStarted) {
+            // Log warning but allow the call flow to continue
+            console.warn("Recording could not be started, continuing call without local recording.");
+        }
 
         // 3. Start SIP Session
         if (ua && ua.isConnected()) {
+            console.log("Iniciando llamada SIP al prospecto:", prospect.telefono);
+
             const targetDomain = (voipSettings && voipSettings.voip_domain) ? voipSettings.voip_domain : ua.configuration.uri.host;
             const targetUri = SIP.UserAgent.makeURI(`sip:${prospect.telefono}@${targetDomain}`);
             if (!targetUri) throw new Error("URI destino inválida");
@@ -299,7 +305,10 @@ const startCallProcess = async (prospect) => {
 
             await currentSession.invite();
         } else {
-            console.log("Simulating call (VoIP not connected)");
+            console.log("VoIP no conectado.");
+            // Provide visible feedback to the user when VoIP is not connected
+            // so they know why a real call wasn't placed.
+            alert("Aviso: El servidor VoIP no está conectado. Se ha iniciado una grabación local y se simulará el estado de la llamada, pero no se está realizando una llamada telefónica real.");
         }
 
         // Setup Hangup button
@@ -356,8 +365,10 @@ const startRecording = async () => {
         };
 
         mediaRecorder.start();
+        return true;
     } catch (err) {
         console.error("No se pudo iniciar la grabación:", err);
+        return false;
     }
 };
 
