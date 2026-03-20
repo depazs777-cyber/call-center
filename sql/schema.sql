@@ -63,11 +63,25 @@ INSERT INTO users (nombre, email, password, rol) VALUES
 ON DUPLICATE KEY UPDATE id=id;
 
 -- Insert default VoIP settings
-INSERT IGNORE INTO settings (clave, valor) VALUES ('voip_server', '');
-INSERT IGNORE INTO settings (clave, valor) VALUES ('voip_port', '');
-INSERT IGNORE INTO settings (clave, valor) VALUES ('voip_transport', 'ws');
-INSERT IGNORE INTO settings (clave, valor) VALUES ('voip_display_name', '');
-INSERT IGNORE INTO settings (clave, valor) VALUES ('voip_username', '');
-INSERT IGNORE INTO settings (clave, valor) VALUES ('voip_auth_user', '');
+INSERT IGNORE INTO settings (clave, valor) VALUES ('voip_server', 'srv2.recargavoip.com');
+INSERT IGNORE INTO settings (clave, valor) VALUES ('voip_port', '8080');
+INSERT IGNORE INTO settings (clave, valor) VALUES ('voip_transport', 'wss');
+INSERT IGNORE INTO settings (clave, valor) VALUES ('voip_display_name', 'SENDEROS2');
+INSERT IGNORE INTO settings (clave, valor) VALUES ('voip_username', 'SENDEROS2');
+INSERT IGNORE INTO settings (clave, valor) VALUES ('voip_auth_user', 'SENDEROS2');
 INSERT IGNORE INTO settings (clave, valor) VALUES ('voip_password', '');
-INSERT IGNORE INTO settings (clave, valor) VALUES ('voip_domain', '');
+INSERT IGNORE INTO settings (clave, valor) VALUES ('voip_domain', 'srv2.recargavoip.com');
+
+-- Insert default user accounts requested by user (password '123456', hashed)
+-- Password hash generated for '123456' is '$2y$10$wzN22B.aI3x9m.s9L1O1.OhT.t0lD9U2NlF5c.XwA5.2O1dO2b.F.'
+INSERT IGNORE INTO users (nombre, email, password, rol) VALUES
+('Caicedonia', 'caicedonia@senderosdepaz.com', '$2y$10$wzN22B.aI3x9m.s9L1O1.OhT.t0lD9U2NlF5c.XwA5.2O1dO2b.F.', 'asesor'),
+('Direccion Comercial', 'direccioncomercial@senderosdepaz.com', '$2y$10$wzN22B.aI3x9m.s9L1O1.OhT.t0lD9U2NlF5c.XwA5.2O1dO2b.F.', 'director'),
+('Obando', 'obando@senderosdepaz.com', '$2y$10$wzN22B.aI3x9m.s9L1O1.OhT.t0lD9U2NlF5c.XwA5.2O1dO2b.F.', 'asesor'),
+('Ibague', 'ibague@senderosdepaz.com', '$2y$10$wzN22B.aI3x9m.s9L1O1.OhT.t0lD9U2NlF5c.XwA5.2O1dO2b.F.', 'asesor'),
+('Alcala', 'alcala@senderosdepaz.com', '$2y$10$wzN22B.aI3x9m.s9L1O1.OhT.t0lD9U2NlF5c.XwA5.2O1dO2b.F.', 'asesor'),
+('Empresarial Ibague', 'empresarialibague@senderosdepaz.com', '$2y$10$wzN22B.aI3x9m.s9L1O1.OhT.t0lD9U2NlF5c.XwA5.2O1dO2b.F.', 'asesor'),
+('Comercial', 'comercial@senderosdepaz.com', '$2y$10$wzN22B.aI3x9m.s9L1O1.OhT.t0lD9U2NlF5c.XwA5.2O1dO2b.F.', 'asesor'),
+('Cobrador Virtual Buga', 'cobradorvirtualbuga@senderosdepaz.com', '$2y$10$wzN22B.aI3x9m.s9L1O1.OhT.t0lD9U2NlF5c.XwA5.2O1dO2b.F.', 'asesor'),
+('Mesa de Ayuda', 'mesadeayuda@senderosdepaz.com', '$2y$10$wzN22B.aI3x9m.s9L1O1.OhT.t0lD9U2NlF5c.XwA5.2O1dO2b.F.', 'admin'),
+('Pereira', 'pereira@proteger.com', '$2y$10$wzN22B.aI3x9m.s9L1O1.OhT.t0lD9U2NlF5c.XwA5.2O1dO2b.F.', 'asesor');

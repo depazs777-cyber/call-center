@@ -43,7 +43,10 @@ const renderAdminDashboard = async () => {
                 </div>
 
                 <div class="p-4 rounded-lg bg-white shadow-md hidden" id="voip" role="tabpanel" aria-labelledby="voip-tab">
-                    <h2 class="text-2xl font-bold mb-4">Configuración VoIP</h2>
+                    <div class="flex justify-between items-center mb-4">
+                        <h2 class="text-2xl font-bold">Configuración VoIP</h2>
+                        <a href="test-voip.html" target="_blank" class="text-white bg-green-600 hover:bg-green-700 focus:ring-4 focus:outline-none focus:ring-green-300 font-medium rounded-lg text-sm px-4 py-2 text-center">Abrir Sistema de Prueba de Llamadas</a>
+                    </div>
                     <form id="voip-form">
                         <div class="grid gap-6 mb-6 md:grid-cols-2">
                             <div>
