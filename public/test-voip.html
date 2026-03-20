@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Test de Conexión VoIP</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://unpkg.com/sip.js@0.21.2/dist/sip.js"></script>
+    <script src="https://unpkg.com/sip.js/dist/sip-0.21.2.min.js"></script>
 </head>
 <body class="bg-gray-100 text-gray-800 p-8">
     <div class="max-w-4xl mx-auto bg-white p-6 rounded-lg shadow-md">
@@ -107,7 +107,7 @@
         document.getElementById('btn-load-config').addEventListener('click', async () => {
             try {
                 log("Obteniendo configuración del servidor...", "info");
-                const token = localStorage.getItem('token');
+                const token = localStorage.getItem('jwt_token') || localStorage.getItem('token');
                 if (!token) {
                     log("Error: No estás logueado en el sistema. Inicia sesión en el Call Center primero.", "error");
                     return;
