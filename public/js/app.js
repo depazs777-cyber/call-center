@@ -145,6 +145,105 @@ window.showHistory = async () => {
     }
 };
 
+let currentCrmProspectId = null;
+
+window.viewProspectCRM = async (prospectId) => {
+    currentCrmProspectId = prospectId;
+    try {
+        const response = await fetch(`/api/prospects.php?id=${prospectId}`, {
+            headers: { 'Authorization': `Bearer ${localStorage.getItem('jwt_token')}` }
+        });
+
+        if (!response.ok) throw new Error('No autorizado o prospecto no encontrado');
+        const prospect = await response.json();
+
+        document.getElementById('crm-name').textContent = prospect.nombre;
+        document.getElementById('crm-phone').textContent = prospect.telefono;
+        document.getElementById('crm-email').textContent = prospect.email || '-';
+        document.getElementById('crm-city').textContent = prospect.ciudad || '-';
+        document.getElementById('crm-campaign').textContent = prospect.campaña_nombre || '-';
+        document.getElementById('crm-assigned').textContent = prospect.asignado_a_nombre || 'Sin asignar';
+        document.getElementById('crm-notes').value = prospect.notas_internas || '';
+
+        let otrosHtml = '';
+        if (prospect.otros) {
+            try {
+                const otrosData = JSON.parse(prospect.otros);
+                if(otrosData.length > 0) {
+                    otrosHtml = '<strong>Otros datos:</strong><br>' + otrosData.map(v => window.escapeHTML(v)).join('<br>');
+                }
+            } catch(e) {}
+        }
+        document.getElementById('crm-otros').innerHTML = otrosHtml;
+
+        const historyList = document.getElementById('crm-history-list');
+        historyList.innerHTML = '';
+
+        if (!prospect.historial || prospect.historial.length === 0) {
+            historyList.innerHTML = '<p class="text-sm text-gray-500 italic mt-2 ml-4">No hay interacciones registradas.</p>';
+        } else {
+            prospect.historial.forEach(h => {
+                const li = document.createElement('li');
+                li.className = 'mb-4 ml-6';
+                li.innerHTML = `
+                    <span class="absolute flex items-center justify-center w-6 h-6 bg-blue-100 rounded-full -left-3 ring-8 ring-white">
+                        <svg class="w-3 h-3 text-blue-800" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 20">
+                            <path d="M20 4a2 2 0 0 0-2-2h-2V1a1 1 0 0 0-2 0v1h-3V1a1 1 0 0 0-2 0v1H6V1a1 1 0 0 0-2 0v1H2a2 2 0 0 0-2 2v2h20V4ZM0 18a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V8H0v10Zm5-8h10a1 1 0 0 1 0 2H5a1 1 0 0 1 0-2Z"/>
+                        </svg>
+                    </span>
+                    <div class="p-3 bg-white border border-gray-200 rounded-lg shadow-sm">
+                        <div class="flex justify-between items-center mb-1">
+                            <time class="mb-1 text-xs font-normal text-gray-400 sm:order-last sm:mb-0">${h.fecha_inicio}</time>
+                            <div class="text-sm font-normal text-gray-500">
+                                Llamada por <span class="font-semibold text-gray-900">${window.escapeHTML(h.asesor_nombre || 'Desconocido')}</span>
+                            </div>
+                        </div>
+                        <div class="p-2 text-xs font-normal text-gray-500 border border-gray-200 rounded-lg bg-gray-50 mt-2">
+                            <p><strong>Estado:</strong> ${window.escapeHTML(h.estado)}</p>
+                            ${h.medio_contacto ? `<p><strong>Medio:</strong> ${window.escapeHTML(h.medio_contacto)}</p>` : ''}
+                            <p><strong>Duración:</strong> ${h.duracion} seg</p>
+                            ${h.comentarios ? `<p class="mt-1 border-t pt-1"><strong>Comentarios:</strong> ${window.escapeHTML(h.comentarios)}</p>` : ''}
+                            ${h.archivo_adjunto ? `<a href="${h.archivo_adjunto}" target="_blank" class="inline-flex items-center mt-2 text-blue-600 hover:underline"><i class="fas fa-paperclip mr-1"></i> Adjunto</a>` : ''}
+                            ${h.grabacion_url ? `<a href="${h.grabacion_url}" target="_blank" class="inline-flex items-center mt-2 ml-3 text-green-600 hover:underline"><i class="fas fa-play mr-1"></i> Grabación</a>` : ''}
+                        </div>
+                    </div>
+                `;
+                historyList.appendChild(li);
+            });
+        }
+
+        document.getElementById('crm-modal').classList.remove('hidden');
+    } catch (e) {
+        alert(e.message);
+    }
+};
+
+window.closeCrmModal = () => {
+    document.getElementById('crm-modal').classList.add('hidden');
+    currentCrmProspectId = null;
+};
+
+window.saveCrmNotes = async () => {
+    if (!currentCrmProspectId) return;
+    const notes = document.getElementById('crm-notes').value;
+
+    try {
+        const response = await fetch('/api/prospects.php', {
+            method: 'PUT',
+            headers: {
+                'Authorization': `Bearer ${localStorage.getItem('jwt_token')}`,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ id: currentCrmProspectId, notas_internas: notes })
+        });
+
+        if (!response.ok) throw new Error('Error al guardar notas');
+        alert('Notas guardadas correctamente');
+    } catch (e) {
+        alert(e.message);
+    }
+};
+
 // Handle route changes
 window.addEventListener('hashchange', () => {
     initApp();

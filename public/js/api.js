@@ -64,7 +64,12 @@ const api = {
     deleteUser: (id) => apiFetch(`/users?id=${id}`, { method: 'DELETE' }),
     getCampaigns: () => apiFetch('/campaigns'),
     createCampaign: (campaign) => apiFetch('/campaigns', { method: 'POST', body: JSON.stringify(campaign) }),
-    getProspects: (campaignId) => apiFetch(campaignId ? `/prospects?campaign_id=${campaignId}` : '/prospects'),
+    getProspects: (campaignId, searchStr = '') => {
+        let url = '/prospects?';
+        if (campaignId) url += `campaign_id=${campaignId}&`;
+        if (searchStr) url += `search=${encodeURIComponent(searchStr)}&`;
+        return apiFetch(url);
+    },
     uploadCSV: (formData) => apiFetch('/prospects/upload-csv', { method: 'POST', body: formData }),
     getScript: (campaignId) => apiFetch(`/scripts?campaign_id=${campaignId}`),
     saveScript: (data) => apiFetch('/scripts', { method: 'POST', body: JSON.stringify(data) }),

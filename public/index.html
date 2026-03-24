@@ -49,6 +49,51 @@
         <!-- Content will be injected here -->
     </main>
 
+    <!-- CRM Modal (Shared between Admin & Asesor) -->
+    <div id="crm-modal" tabindex="-1" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+        <div class="bg-white rounded-lg shadow-lg w-full max-w-4xl p-6 max-h-[90vh] flex flex-col">
+            <div class="flex justify-between items-start border-b pb-3 mb-4">
+                <h3 class="font-bold text-2xl text-gray-800" id="crm-name">Detalle del Prospecto</h3>
+                <button type="button" class="text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8 ml-auto inline-flex justify-center items-center" onclick="closeCrmModal()">
+                    <svg class="w-3 h-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 14 14">
+                        <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6"/>
+                    </svg>
+                    <span class="sr-only">Close modal</span>
+                </button>
+            </div>
+            <div class="flex-grow overflow-y-auto pr-2 grid grid-cols-1 md:grid-cols-3 gap-6">
+                <!-- Data & Notes (1/3) -->
+                <div class="md:col-span-1 space-y-4">
+                    <div class="bg-gray-50 p-4 rounded-lg border">
+                        <h4 class="font-bold text-gray-700 border-b pb-2 mb-2">Información</h4>
+                        <p class="text-sm"><span class="font-semibold">Teléfono:</span> <span id="crm-phone"></span></p>
+                        <p class="text-sm"><span class="font-semibold">Email:</span> <span id="crm-email"></span></p>
+                        <p class="text-sm"><span class="font-semibold">Ciudad:</span> <span id="crm-city"></span></p>
+                        <p class="text-sm"><span class="font-semibold">Campaña:</span> <span id="crm-campaign"></span></p>
+                        <p class="text-sm"><span class="font-semibold">Asesor:</span> <span id="crm-assigned"></span></p>
+                        <div id="crm-otros" class="mt-2 text-sm text-gray-600"></div>
+                    </div>
+
+                    <div class="bg-blue-50 p-4 rounded-lg border border-blue-100">
+                        <h4 class="font-bold text-gray-700 border-b pb-2 mb-2">Notas Internas</h4>
+                        <textarea id="crm-notes" rows="6" class="w-full text-sm p-2 border rounded focus:ring focus:ring-blue-200" placeholder="Escribe observaciones generales sobre el prospecto aquí..."></textarea>
+                        <button onclick="saveCrmNotes()" class="mt-2 w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded transition">Guardar Notas</button>
+                    </div>
+                </div>
+
+                <!-- History (2/3) -->
+                <div class="md:col-span-2 flex flex-col">
+                    <h4 class="font-bold text-gray-700 border-b pb-2 mb-2">Historial de Interacciones</h4>
+                    <div class="flex-grow overflow-y-auto">
+                        <ul id="crm-history-list" class="space-y-3 relative border-l border-gray-200 ml-3">
+                            <!-- Injected history items -->
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Scripts -->
     <script src="public/js/app.js"></script>
     <script src="public/js/api.js"></script>

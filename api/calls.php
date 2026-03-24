@@ -35,6 +35,7 @@ try {
             $call_id = $_POST['call_id'] ?? null;
             $estado = $_POST['estado'] ?? null;
             $comentarios = $_POST['comentarios'] ?? null;
+            $medio_contacto = $_POST['medio_contacto'] ?? null;
 
             if (empty($call_id) || empty($estado)) {
                 json_response(['error' => 'Call ID y estado son obligatorios'], 400);
@@ -102,7 +103,8 @@ try {
                                     comentarios = :comentarios,
                                     archivo_adjunto = :archivo_adjunto,
                                     grabacion_url = :grabacion_url,
-                                    duracion = TIMESTAMPDIFF(SECOND, fecha_inicio, NOW())
+                                    duracion = TIMESTAMPDIFF(SECOND, fecha_inicio, NOW()),
+                                    medio_contacto = :medio_contacto
                                    WHERE id = :call_id");
 
             $stmt->execute([
@@ -110,6 +112,7 @@ try {
                 'comentarios' => $comentarios,
                 'archivo_adjunto' => $adjunto_url,
                 'grabacion_url' => $grabacion_url,
+                'medio_contacto' => $medio_contacto,
                 'call_id' => $call_id
             ]);
 
@@ -119,7 +122,7 @@ try {
         }
     }
     elseif ($method === 'GET' && strpos($uri, 'history') !== false) {
-        $sql = "SELECT c.id, p.nombre AS prospecto, p.telefono, u.nombre AS asesor, c.fecha_inicio, c.fecha_fin, c.duracion, c.estado, c.comentarios, c.archivo_adjunto, c.grabacion_url, p.campaign_id
+        $sql = "SELECT c.id, p.nombre AS prospecto, p.telefono, u.nombre AS asesor, c.fecha_inicio, c.fecha_fin, c.duracion, c.estado, c.comentarios, c.archivo_adjunto, c.grabacion_url, c.medio_contacto, p.campaign_id
                 FROM calls c
                 LEFT JOIN prospects p ON c.prospect_id = p.id
                 LEFT JOIN users u ON c.user_id = u.id";

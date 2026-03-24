@@ -108,6 +108,15 @@ const renderAdminDashboard = async () => {
                         <select id="script_camp_select" class="border p-2 rounded mb-2 block w-full max-w-sm">
                             <option value="">Seleccione campaña...</option>
                         </select>
+
+                        <div class="mb-2 space-x-2 text-sm">
+                            <span class="font-bold text-gray-700">Variables Dinámicas:</span>
+                            <button type="button" class="text-blue-600 hover:underline border px-2 rounded bg-blue-50" onclick="insertScriptVariable('{nombre}')">{nombre}</button>
+                            <button type="button" class="text-blue-600 hover:underline border px-2 rounded bg-blue-50" onclick="insertScriptVariable('{telefono}')">{telefono}</button>
+                            <button type="button" class="text-blue-600 hover:underline border px-2 rounded bg-blue-50" onclick="insertScriptVariable('{ciudad}')">{ciudad}</button>
+                            <button type="button" class="text-blue-600 hover:underline border px-2 rounded bg-blue-50" onclick="insertScriptVariable('{email}')">{email}</button>
+                        </div>
+
                         <textarea id="script_content" rows="6" class="block p-2.5 w-full text-sm text-gray-900 bg-gray-50 rounded-lg border border-gray-300" placeholder="Escriba el script de ventas aquí..."></textarea>
                         <button id="save_script_btn" class="mt-2 bg-green-500 text-white px-4 py-2 rounded">Guardar Script</button>
                     </div>
@@ -129,6 +138,12 @@ const renderAdminDashboard = async () => {
                             </select>
                         </div>
                         <div class="mb-4">
+                            <label class="block mb-2 text-sm font-medium text-gray-900" for="csv_user_select">Asignar a Asesor (Opcional)</label>
+                            <select id="csv_user_select" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5">
+                                <option value="">Sin asignar (todos los asesores)</option>
+                            </select>
+                        </div>
+                        <div class="mb-4">
                             <label class="block mb-2 text-sm font-medium text-gray-900" for="csv_file">Archivo CSV</label>
                             <input class="block w-full text-sm text-gray-900 border border-gray-300 rounded-lg cursor-pointer bg-gray-50 focus:outline-none" id="csv_file" type="file" accept=".csv" required>
                             <p class="mt-1 text-sm text-gray-500">Columnas requeridas: nombre, telefono. Opcionales: ciudad, email.</p>
@@ -136,6 +151,72 @@ const renderAdminDashboard = async () => {
                         <button type="submit" class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm w-full sm:w-auto px-5 py-2.5 text-center">Subir Archivo</button>
                     </form>
                     <p id="csv-result" class="mt-4 font-bold text-green-600 hidden"></p>
+
+                    <hr class="my-8">
+
+                    <h2 class="text-2xl font-bold mb-4">Gestión de Prospectos</h2>
+
+                    <div class="flex flex-wrap gap-4 mb-4 p-4 bg-gray-50 rounded-lg border">
+                        <div class="w-full md:w-1/4">
+                            <label class="block mb-2 text-sm font-medium text-gray-900">Filtrar por Campaña</label>
+                            <select id="filter_campaign" class="bg-white border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5">
+                                <option value="">Todas las campañas</option>
+                            </select>
+                        </div>
+                        <div class="w-full md:w-1/4">
+                            <label class="block mb-2 text-sm font-medium text-gray-900">Filtrar por Asesor</label>
+                            <select id="filter_asesor" class="bg-white border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5">
+                                <option value="">Cualquier asesor</option>
+                                <option value="unassigned">Sin asignar</option>
+                            </select>
+                        </div>
+                        <div class="w-full md:w-1/4">
+                            <label class="block mb-2 text-sm font-medium text-gray-900">Estado de Llamada</label>
+                            <select id="filter_status" class="bg-white border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5">
+                                <option value="">Cualquier estado</option>
+                                <option value="Finalizada">Finalizada</option>
+                                <option value="No contestó">No contestó</option>
+                                <option value="Venta efectiva">Venta efectiva</option>
+                                <option value="Cita agendada">Cita agendada</option>
+                                <option value="Cliente no interesado">Cliente no interesado</option>
+                                <option value="Equivocado">Equivocado</option>
+                                <option value="Buzón de voz">Buzón de voz</option>
+                            </select>
+                        </div>
+                        <div class="w-full md:w-1/4 flex items-end">
+                            <div class="w-full relative">
+                                <input type="text" id="filter_search" class="bg-white border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5" placeholder="Buscar nombre/teléfono...">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="flex items-center gap-2 mb-4 bg-blue-50 p-3 rounded border border-blue-200">
+                        <span class="text-sm font-semibold">Acciones Masivas:</span>
+                        <select id="bulk_assign_user" class="bg-white border border-gray-300 text-gray-900 text-sm rounded focus:ring-blue-500 focus:border-blue-500 p-1.5 w-48">
+                            <option value="">Seleccione Asesor...</option>
+                            <option value="unassigned">Quitar asignación</option>
+                        </select>
+                        <button id="btn_bulk_assign" class="bg-blue-600 hover:bg-blue-700 text-white text-sm px-3 py-1.5 rounded">Asignar Seleccionados</button>
+                    </div>
+
+                    <div class="overflow-x-auto relative shadow-md sm:rounded-lg">
+                        <table class="w-full text-sm text-left text-gray-500">
+                            <thead class="text-xs text-gray-700 uppercase bg-gray-100">
+                                <tr>
+                                    <th scope="col" class="p-4"><input type="checkbox" id="select_all_prospects" class="w-4 h-4 text-blue-600 bg-gray-100 rounded border-gray-300 focus:ring-blue-500"></th>
+                                    <th scope="col" class="px-6 py-3">Nombre</th>
+                                    <th scope="col" class="px-6 py-3">Teléfono</th>
+                                    <th scope="col" class="px-6 py-3">Campaña</th>
+                                    <th scope="col" class="px-6 py-3">Asignado A</th>
+                                    <th scope="col" class="px-6 py-3">Último Estado</th>
+                                    <th scope="col" class="px-6 py-3">Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody id="prospects-table-body">
+                                <tr><td colspan="7" class="text-center py-4">Cargando prospectos...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
         </div>
@@ -206,6 +287,10 @@ const renderAdminDashboard = async () => {
     await loadUsers();
     await loadSettings();
     await loadCampaignsForAdmin();
+    await loadProspectsAdmin();
+
+    // Setup prospect list filters and actions
+    setupProspectAdminListeners();
 
     // Event Listeners
     document.getElementById('new-user-form').addEventListener('submit', async (e) => {
@@ -299,12 +384,16 @@ const renderAdminDashboard = async () => {
         e.preventDefault();
         const fileInput = document.getElementById('csv_file');
         const campId = document.getElementById('csv_camp_select').value;
+        const assignedTo = document.getElementById('csv_user_select').value;
 
         if (!fileInput.files[0] || !campId) return;
 
         const formData = new FormData();
         formData.append('csv', fileInput.files[0]);
         formData.append('campaign_id', campId);
+        if (assignedTo) {
+            formData.append('assigned_to', assignedTo);
+        }
 
         try {
             const result = await api.uploadCSV(formData);
@@ -322,6 +411,21 @@ const loadUsers = async () => {
     try {
         const users = await api.getUsers();
         const tbody = document.getElementById('users-table-body');
+
+        // Cargar users en selects de admin
+        const asesoresSelectOpts = '<option value="">Cualquier asesor</option><option value="unassigned">Sin asignar</option>' +
+            users.filter(u => u.rol === 'asesor').map(u => `<option value="${u.id}">${window.escapeHTML(u.nombre)}</option>`).join('');
+
+        const csvUserSelectOpts = '<option value="">Sin asignar (todos los asesores)</option>' +
+            users.filter(u => u.rol === 'asesor').map(u => `<option value="${u.id}">${window.escapeHTML(u.nombre)}</option>`).join('');
+
+        const bulkAssignOpts = '<option value="">Seleccione Asesor...</option><option value="unassigned">Quitar asignación</option>' +
+            users.filter(u => u.rol === 'asesor').map(u => `<option value="${u.id}">${window.escapeHTML(u.nombre)}</option>`).join('');
+
+        if(document.getElementById('filter_asesor')) document.getElementById('filter_asesor').innerHTML = asesoresSelectOpts;
+        if(document.getElementById('csv_user_select')) document.getElementById('csv_user_select').innerHTML = csvUserSelectOpts;
+        if(document.getElementById('bulk_assign_user')) document.getElementById('bulk_assign_user').innerHTML = bulkAssignOpts;
+
         tbody.innerHTML = '';
         users.forEach(u => {
             const tr = document.createElement('tr');
@@ -396,6 +500,11 @@ const loadCampaignsForAdmin = async () => {
 
         scriptSel.innerHTML = opts;
         csvSel.innerHTML = opts;
+
+        const filterOpts = '<option value="">Todas las campañas</option>' +
+            campaigns.map(c => `<option value="${c.id}">${window.escapeHTML(c.nombre)}</option>`).join('');
+        if(document.getElementById('filter_campaign')) document.getElementById('filter_campaign').innerHTML = filterOpts;
+
     } catch (e) {
         console.error("Failed to load campaigns", e);
     }
@@ -409,4 +518,130 @@ window.deleteUser = async (id) => {
     } catch (err) {
         alert(err.message);
     }
+};
+
+window.insertScriptVariable = (variable) => {
+    const textarea = document.getElementById('script_content');
+    const start = textarea.selectionStart;
+    const end = textarea.selectionEnd;
+    const text = textarea.value;
+    textarea.value = text.substring(0, start) + variable + text.substring(end);
+    textarea.focus();
+    textarea.selectionStart = textarea.selectionEnd = start + variable.length;
+};
+
+let currentProspectsAdmin = [];
+
+const loadProspectsAdmin = async () => {
+    const filters = {
+        campaign_id: document.getElementById('filter_campaign').value,
+        assigned_to: document.getElementById('filter_asesor').value,
+        status: document.getElementById('filter_status').value,
+        search: document.getElementById('filter_search').value
+    };
+
+    // Construir query string
+    const query = new URLSearchParams();
+    if(filters.campaign_id) query.append('campaign_id', filters.campaign_id);
+    if(filters.assigned_to) query.append('assigned_to', filters.assigned_to);
+    if(filters.status) query.append('status', filters.status);
+    if(filters.search) query.append('search', filters.search);
+
+    try {
+        const response = await fetch(`/api/prospects.php?${query.toString()}`, {
+            headers: { 'Authorization': `Bearer ${localStorage.getItem('jwt_token')}` }
+        });
+        if (!response.ok) throw new Error('Error obteniendo prospectos');
+        currentProspectsAdmin = await response.json();
+        renderProspectsAdminTable();
+    } catch (e) {
+        console.error("Failed to load prospects", e);
+    }
+};
+
+const renderProspectsAdminTable = () => {
+    const tbody = document.getElementById('prospects-table-body');
+    tbody.innerHTML = '';
+
+    if (currentProspectsAdmin.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="7" class="text-center py-4">No se encontraron prospectos</td></tr>';
+        return;
+    }
+
+    currentProspectsAdmin.forEach(p => {
+        const tr = document.createElement('tr');
+        tr.className = 'bg-white border-b hover:bg-gray-50';
+        tr.innerHTML = `
+            <td class="p-4 w-4">
+                <input type="checkbox" value="${p.id}" class="prospect-checkbox w-4 h-4 text-blue-600 bg-gray-100 rounded border-gray-300 focus:ring-blue-500">
+            </td>
+            <td class="px-6 py-4 font-medium text-gray-900">${window.escapeHTML(p.nombre)}</td>
+            <td class="px-6 py-4">${window.escapeHTML(p.telefono)}</td>
+            <td class="px-6 py-4">${window.escapeHTML(p.campaña_nombre || 'N/A')}</td>
+            <td class="px-6 py-4">${window.escapeHTML(p.asignado_a_nombre || 'Sin asignar')}</td>
+            <td class="px-6 py-4">
+                ${p.ultimo_estado ? `<span class="px-2 py-1 text-xs font-semibold rounded-full bg-blue-100 text-blue-800">${window.escapeHTML(p.ultimo_estado)}</span>` : '<span class="text-gray-400 italic">Sin contactar</span>'}
+            </td>
+            <td class="px-6 py-4">
+                <button onclick="window.viewProspectCRM(${p.id})" class="font-medium text-blue-600 hover:underline">Detalles (CRM)</button>
+            </td>
+        `;
+        tbody.appendChild(tr);
+    });
+};
+
+const setupProspectAdminListeners = () => {
+    // Listeners para filtros
+    ['filter_campaign', 'filter_asesor', 'filter_status'].forEach(id => {
+        document.getElementById(id).addEventListener('change', loadProspectsAdmin);
+    });
+
+    // Listener para busqueda (debounce simple)
+    let searchTimeout;
+    document.getElementById('filter_search').addEventListener('input', () => {
+        clearTimeout(searchTimeout);
+        searchTimeout = setTimeout(loadProspectsAdmin, 500);
+    });
+
+    // Seleccionar todos los checkboxes
+    document.getElementById('select_all_prospects').addEventListener('change', (e) => {
+        const checkboxes = document.querySelectorAll('.prospect-checkbox');
+        checkboxes.forEach(cb => cb.checked = e.target.checked);
+    });
+
+    // Boton Asignar Masivamente
+    document.getElementById('btn_bulk_assign').addEventListener('click', async () => {
+        const assignedTo = document.getElementById('bulk_assign_user').value;
+        if (assignedTo === '') {
+            return alert('Seleccione un asesor para asignar.');
+        }
+
+        const selectedIds = Array.from(document.querySelectorAll('.prospect-checkbox:checked')).map(cb => cb.value);
+        if (selectedIds.length === 0) {
+            return alert('Seleccione al menos un prospecto de la tabla.');
+        }
+
+        try {
+            const response = await fetch('/api/prospects.php/assign', {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${localStorage.getItem('jwt_token')}`,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    prospect_ids: selectedIds,
+                    assigned_to: assignedTo === 'unassigned' ? null : assignedTo
+                })
+            });
+
+            const result = await response.json();
+            if (!response.ok) throw new Error(result.error || 'Error en la asignación');
+
+            alert(`Éxito: ${result.registros_actualizados} prospectos reasignados.`);
+            document.getElementById('select_all_prospects').checked = false;
+            await loadProspectsAdmin();
+        } catch (e) {
+            alert(e.message);
+        }
+    });
 };

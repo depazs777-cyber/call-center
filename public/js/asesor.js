@@ -15,10 +15,11 @@ const renderAsesorDashboard = async () => {
             <!-- Sidebar / Listado de Prospectos -->
             <div class="w-1/3 bg-white p-4 shadow-md rounded-lg flex flex-col h-full overflow-hidden">
                 <h2 class="text-xl font-bold mb-4">Mis Prospectos</h2>
-                <div class="mb-4">
+                <div class="mb-4 space-y-2">
                     <select id="asesor_camp_select" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5">
                         <option value="">Todas las campañas</option>
                     </select>
+                    <input type="text" id="asesor_search" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5" placeholder="Buscar nombre o teléfono...">
                 </div>
                 <div class="flex-grow overflow-y-auto">
                     <ul id="prospects-list" class="divide-y divide-gray-200">
@@ -32,7 +33,10 @@ const renderAsesorDashboard = async () => {
                 <div id="call-panel" class="hidden flex-col h-full">
                     <div class="flex justify-between items-center mb-4 pb-4 border-b">
                         <div>
-                            <h2 id="call-name" class="text-2xl font-bold">Nombre del Cliente</h2>
+                            <div class="flex items-center gap-3 mb-1">
+                                <h2 id="call-name" class="text-2xl font-bold">Nombre del Cliente</h2>
+                                <button id="btn-crm" class="text-xs bg-blue-100 text-blue-700 hover:bg-blue-200 px-2 py-1 rounded border border-blue-300 transition">Ver CRM</button>
+                            </div>
                             <p id="call-phone" class="text-gray-600 text-lg">123-456-7890</p>
                             <p id="call-city" class="text-sm text-gray-500">Ciudad</p>
                         </div>
@@ -70,17 +74,30 @@ const renderAsesorDashboard = async () => {
                 <div class="bg-white rounded-lg shadow-lg w-full max-w-md p-6">
                     <h3 class="font-bold text-xl text-gray-800 mb-4 border-b pb-2">Finalizar Llamada</h3>
                     <form id="end-call-form" class="space-y-4">
-                        <div>
-                            <label class="block mb-1 text-sm font-medium text-gray-900">Estado de Llamada</label>
-                            <select id="call-status" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5" required>
-                                <option value="">Seleccione estado...</option>
-                                <option value="No contestó">No contestó</option>
-                                <option value="Venta efectiva">Venta efectiva</option>
-                                <option value="Cita agendada">Cita agendada</option>
-                                <option value="Cliente no interesado">Cliente no interesado</option>
-                                <option value="Buzón de voz">Buzón de voz</option>
-                                <option value="Número equivocado">Número equivocado</option>
-                            </select>
+                        <div class="flex gap-4">
+                            <div class="flex-1">
+                                <label class="block mb-1 text-sm font-medium text-gray-900">Estado de Llamada</label>
+                                <select id="call-status" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5" required>
+                                    <option value="">Seleccione estado...</option>
+                                    <option value="No contestó">No contestó</option>
+                                    <option value="Venta efectiva">Venta efectiva</option>
+                                    <option value="Cita agendada">Cita agendada</option>
+                                    <option value="Cliente no interesado">Cliente no interesado</option>
+                                    <option value="Buzón de voz">Buzón de voz</option>
+                                    <option value="Número equivocado">Número equivocado</option>
+                                </select>
+                            </div>
+                            <div class="flex-1">
+                                <label class="block mb-1 text-sm font-medium text-gray-900">Medio de Contacto</label>
+                                <select id="call-medio" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5" required>
+                                    <option value="">Seleccione...</option>
+                                    <option value="Llamada saliente">Llamada saliente</option>
+                                    <option value="Llamada entrante">Llamada entrante</option>
+                                    <option value="WhatsApp">WhatsApp</option>
+                                    <option value="Correo">Correo</option>
+                                    <option value="Otro">Otro</option>
+                                </select>
+                            </div>
                         </div>
                         <div>
                             <label class="block mb-1 text-sm font-medium text-gray-900">Comentarios</label>
@@ -109,7 +126,13 @@ const renderAsesorDashboard = async () => {
 
     // Event Listeners
     document.getElementById('asesor_camp_select').addEventListener('change', async (e) => {
-        await loadProspects(e.target.value);
+        await loadProspects();
+    });
+
+    let searchTimeout;
+    document.getElementById('asesor_search').addEventListener('input', () => {
+        clearTimeout(searchTimeout);
+        searchTimeout = setTimeout(loadProspects, 500);
     });
 
     document.getElementById('end-call-form').addEventListener('submit', handleEndCallSubmit);
@@ -127,9 +150,11 @@ const loadCampaignsForAsesor = async () => {
     }
 };
 
-const loadProspects = async (campaignId = null) => {
+const loadProspects = async () => {
     try {
-        const prospects = await api.getProspects(campaignId);
+        const campaignId = document.getElementById('asesor_camp_select').value;
+        const search = document.getElementById('asesor_search').value;
+        const prospects = await api.getProspects(campaignId, search);
         const list = document.getElementById('prospects-list');
         list.innerHTML = '';
 
@@ -172,6 +197,9 @@ const selectProspect = async (prospect) => {
     document.getElementById('call-phone').textContent = prospect.telefono;
     document.getElementById('call-city').textContent = prospect.ciudad || 'Sin ciudad especificada';
 
+    // Setup CRM button
+    document.getElementById('btn-crm').onclick = () => window.viewProspectCRM(prospect.id);
+
     // Reset buttons and form
     document.getElementById('btn-call').classList.remove('hidden');
     document.getElementById('btn-hangup').classList.add('hidden');
@@ -188,7 +216,8 @@ const selectProspect = async (prospect) => {
             let content = window.escapeHTML(script.contenido)
                 .replace(/\{nombre\}/gi, window.escapeHTML(prospect.nombre))
                 .replace(/\{telefono\}/gi, window.escapeHTML(prospect.telefono))
-                .replace(/\{ciudad\}/gi, window.escapeHTML(prospect.ciudad || ''));
+                .replace(/\{ciudad\}/gi, window.escapeHTML(prospect.ciudad || ''))
+                .replace(/\{email\}/gi, window.escapeHTML(prospect.email || ''));
 
             // Format line breaks
             scriptDiv.innerHTML = content.replace(/\n/g, '<br>');
@@ -387,12 +416,14 @@ const handleEndCallSubmit = async (e) => {
     if (!currentCallId) return alert("No hay una llamada activa para finalizar.");
 
     const estado = document.getElementById('call-status').value;
+    const medio_contacto = document.getElementById('call-medio').value;
     const comentarios = document.getElementById('call-comments').value;
     const adjunto = document.getElementById('call-attachment').files[0];
 
     const formData = new FormData();
     formData.append('call_id', currentCallId);
     formData.append('estado', estado);
+    formData.append('medio_contacto', medio_contacto);
     formData.append('comentarios', comentarios);
     if (adjunto) formData.append('adjunto', adjunto);
 
