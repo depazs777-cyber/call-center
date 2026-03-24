@@ -68,8 +68,12 @@ try {
                 $sql .= " AND p.assigned_to = :user_id";
                 $params['user_id'] = $decoded['user_id'];
             } else if ($assigned_to) {
-                $sql .= " AND p.assigned_to = :assigned_to";
-                $params['assigned_to'] = $assigned_to;
+                if ($assigned_to === 'unassigned') {
+                    $sql .= " AND p.assigned_to IS NULL";
+                } else {
+                    $sql .= " AND p.assigned_to = :assigned_to";
+                    $params['assigned_to'] = $assigned_to;
+                }
             }
 
             if ($campaign_id) {

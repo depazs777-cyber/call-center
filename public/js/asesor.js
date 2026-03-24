@@ -158,7 +158,7 @@ const loadProspects = async () => {
         const list = document.getElementById('prospects-list');
         list.innerHTML = '';
 
-        if (prospects.length === 0) {
+        if (!prospects || prospects.length === 0) {
             list.innerHTML = '<li class="p-4 text-gray-500 text-center">No hay prospectos disponibles.</li>';
             return;
         }
@@ -180,6 +180,10 @@ const loadProspects = async () => {
         });
     } catch (e) {
         console.error("Failed to load prospects", e);
+        const list = document.getElementById('prospects-list');
+        if (list) {
+            list.innerHTML = `<li class="p-4 text-red-500 text-center">Error cargando prospectos: ${window.escapeHTML(e.message)}</li>`;
+        }
     }
 };
 

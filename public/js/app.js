@@ -150,12 +150,7 @@ let currentCrmProspectId = null;
 window.viewProspectCRM = async (prospectId) => {
     currentCrmProspectId = prospectId;
     try {
-        const response = await fetch(`/api/prospects.php?id=${prospectId}`, {
-            headers: { 'Authorization': `Bearer ${localStorage.getItem('jwt_token')}` }
-        });
-
-        if (!response.ok) throw new Error('No autorizado o prospecto no encontrado');
-        const prospect = await response.json();
+        const prospect = await apiFetch(`/prospects?id=${prospectId}`);
 
         document.getElementById('crm-name').textContent = prospect.nombre;
         document.getElementById('crm-phone').textContent = prospect.telefono;
@@ -228,16 +223,11 @@ window.saveCrmNotes = async () => {
     const notes = document.getElementById('crm-notes').value;
 
     try {
-        const response = await fetch('/api/prospects.php', {
+        await apiFetch('/prospects', {
             method: 'PUT',
-            headers: {
-                'Authorization': `Bearer ${localStorage.getItem('jwt_token')}`,
-                'Content-Type': 'application/json'
-            },
             body: JSON.stringify({ id: currentCrmProspectId, notas_internas: notes })
         });
 
-        if (!response.ok) throw new Error('Error al guardar notas');
         alert('Notas guardadas correctamente');
     } catch (e) {
         alert(e.message);

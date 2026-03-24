@@ -5,7 +5,12 @@ function json_response($data = null, $status = 200) {
     http_response_code($status);
     header('Content-Type: application/json; charset=utf-8');
     if ($data !== null) {
-        echo json_encode($data);
+        $json = json_encode($data);
+        if ($json === false) {
+            echo json_encode(['error' => 'JSON encode error: ' . json_last_error_msg()]);
+        } else {
+            echo $json;
+        }
     }
     exit;
 }

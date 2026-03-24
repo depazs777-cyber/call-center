@@ -548,14 +548,14 @@ const loadProspectsAdmin = async () => {
     if(filters.search) query.append('search', filters.search);
 
     try {
-        const response = await fetch(`/api/prospects.php?${query.toString()}`, {
-            headers: { 'Authorization': `Bearer ${localStorage.getItem('jwt_token')}` }
-        });
-        if (!response.ok) throw new Error('Error obteniendo prospectos');
-        currentProspectsAdmin = await response.json();
+        currentProspectsAdmin = await apiFetch(`/prospects?${query.toString()}`);
         renderProspectsAdminTable();
     } catch (e) {
         console.error("Failed to load prospects", e);
+        const tbody = document.getElementById('prospects-table-body');
+        if (tbody) {
+            tbody.innerHTML = `<tr><td colspan="7" class="text-center py-4 text-red-500">Error cargando prospectos: ${window.escapeHTML(e.message)}</td></tr>`;
+        }
     }
 };
 
@@ -622,20 +622,13 @@ const setupProspectAdminListeners = () => {
         }
 
         try {
-            const response = await fetch('/api/prospects.php/assign', {
+            const result = await apiFetch('/prospects/assign', {
                 method: 'POST',
-                headers: {
-                    'Authorization': `Bearer ${localStorage.getItem('jwt_token')}`,
-                    'Content-Type': 'application/json'
-                },
                 body: JSON.stringify({
                     prospect_ids: selectedIds,
                     assigned_to: assignedTo === 'unassigned' ? null : assignedTo
                 })
             });
-
-            const result = await response.json();
-            if (!response.ok) throw new Error(result.error || 'Error en la asignación');
 
             alert(`Éxito: ${result.registros_actualizados} prospectos reasignados.`);
             document.getElementById('select_all_prospects').checked = false;
