@@ -1,7 +1,15 @@
 // public/js/api.js
 
 // dynamically build the API base URL based on the current path to support subdirectories
-const API_BASE_URL = window.location.pathname.replace(/\/public\/index\.html$/, '').replace(/\/$/, '') + '/api';
+let basePath = window.location.pathname.replace(/\/public\/index\.html$/, '');
+// Remove trailing slash if it exists
+if (basePath.endsWith('/')) {
+    basePath = basePath.slice(0, -1);
+}
+// Remove any hash or query parameters from the pathname check
+basePath = basePath.split('#')[0].split('?')[0];
+
+const API_BASE_URL = basePath + '/api';
 
 const getAuthHeaders = () => {
     const token = localStorage.getItem('jwt_token');

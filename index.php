@@ -40,8 +40,13 @@ if ($request_uri === '/' || $request_uri === '/index.php') {
 }
 
 // Route API requests
-if (preg_match('/^\/api\/(.*)$/', $request_uri, $matches)) {
-    $api_route = $matches[1];
+if (preg_match('/^\/api\/([^\?]+)/', $request_uri, $matches)) {
+    $api_route = trim($matches[1], '/'); // ensure no trailing slash
+
+    // Check if the route includes .php (some environments might append it or fetch it explicitly like /api/prospects.php)
+    if (str_ends_with($api_route, '.php')) {
+        $api_route = substr($api_route, 0, -4);
+    }
 
     // Auth route handled separately above or in its file
     if ($api_route === 'login') {
