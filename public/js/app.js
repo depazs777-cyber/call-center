@@ -36,6 +36,8 @@ const initApp = () => {
         }
     } else if (hash === '#historial') {
         showHistory();
+    } else if (hash === '#crm') {
+        showCrmSearch();
     } else {
         // Enforce dashboard as default fallback for valid logged in users instead of admin dashboard
         window.location.hash = '#dashboard';
@@ -52,6 +54,7 @@ const setupNavbar = (userData) => {
         <span class="text-sm mr-4">Hola, ${window.escapeHTML(userData.nombre)} (${window.escapeHTML(userData.rol)})</span>
         <a href="#dashboard" class="text-sm hover:text-blue-200">Panel</a>
         <a href="#historial" class="text-sm hover:text-blue-200" onclick="showHistory()">Historial</a>
+        <a href="#crm" class="text-sm hover:text-blue-200" onclick="showCrmSearch()">CRM</a>
     `;
 
     linksHtml += `
@@ -216,6 +219,63 @@ window.viewProspectCRM = async (prospectId) => {
 window.closeCrmModal = () => {
     document.getElementById('crm-modal').classList.add('hidden');
     currentCrmProspectId = null;
+};
+
+window.showCrmSearch = async () => {
+    const appContainer = document.getElementById('app-container');
+    appContainer.innerHTML = `
+        <div class="w-full">
+            <h1 class="text-3xl font-bold mb-6">Búsqueda CRM</h1>
+            <div class="bg-white p-4 rounded-lg shadow-md mb-6">
+                <form id="crm-search-form" class="flex gap-4 items-end">
+                    <div class="w-full max-w-md">
+                        <label class="block mb-2 text-sm font-medium text-gray-900">Buscar Prospecto</label>
+                        <input type="text" id="crm-search-input" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5" placeholder="Nombre o Teléfono..." required>
+                    </div>
+                    <button type="submit" class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center">Buscar</button>
+                </form>
+            </div>
+
+            <div id="crm-search-results" class="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                <div class="col-span-full text-center text-gray-500 py-8">Ingrese un término de búsqueda para comenzar</div>
+            </div>
+        </div>
+    `;
+
+    document.getElementById('crm-search-form').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const searchInput = document.getElementById('crm-search-input').value;
+        const resultsContainer = document.getElementById('crm-search-results');
+
+        resultsContainer.innerHTML = '<div class="col-span-full text-center text-gray-500 py-8">Buscando...</div>';
+
+        try {
+            const prospects = await apiFetch(`/prospects?search=${encodeURIComponent(searchInput)}`);
+
+            if (prospects.length === 0) {
+                resultsContainer.innerHTML = '<div class="col-span-full text-center text-gray-500 py-8">No se encontraron resultados</div>';
+                return;
+            }
+
+            let html = '';
+            prospects.forEach(p => {
+                html += `
+                    <div class="bg-white p-4 rounded-lg shadow border border-gray-100 flex flex-col justify-between">
+                        <div>
+                            <h3 class="text-lg font-bold text-gray-900">${window.escapeHTML(p.nombre)}</h3>
+                            <p class="text-sm text-gray-600 mb-1"><i class="fas fa-phone mr-1"></i> ${window.escapeHTML(p.telefono)}</p>
+                            <p class="text-xs text-blue-600 font-semibold mb-2">${window.escapeHTML(p.campaña_nombre)}</p>
+                        </div>
+                        <button onclick="window.viewProspectCRM(${p.id})" class="mt-4 w-full bg-blue-50 hover:bg-blue-100 text-blue-700 font-medium py-2 px-4 rounded border border-blue-200 transition">Ver CRM Completo</button>
+                    </div>
+                `;
+            });
+
+            resultsContainer.innerHTML = html;
+        } catch (err) {
+            resultsContainer.innerHTML = `<div class="col-span-full text-center text-red-500 py-8">Error: ${window.escapeHTML(err.message)}</div>`;
+        }
+    });
 };
 
 window.saveCrmNotes = async () => {

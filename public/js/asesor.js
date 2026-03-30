@@ -40,7 +40,11 @@ const renderAsesorDashboard = async () => {
                             <p id="call-phone" class="text-gray-600 text-lg">123-456-7890</p>
                             <p id="call-city" class="text-sm text-gray-500">Ciudad</p>
                         </div>
-                        <div class="flex gap-2">
+                        <div class="flex gap-2 items-center">
+                            <div id="recording-indicator" class="hidden flex items-center gap-2 mr-4 text-red-600 font-bold animate-pulse">
+                                <div class="w-3 h-3 bg-red-600 rounded-full"></div>
+                                Grabando...
+                            </div>
                             <button id="btn-call" class="bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-6 rounded-full flex items-center shadow-lg transform transition hover:scale-105">
                                 <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"></path></svg>
                                 Llamar
@@ -302,6 +306,9 @@ const startCallProcess = async (prospect) => {
         if (!recordingStarted) {
             // Log warning but allow the call flow to continue
             console.warn("Recording could not be started, continuing call without local recording.");
+        } else {
+            // Show recording indicator
+            document.getElementById('recording-indicator').classList.remove('hidden');
         }
 
         // 3. Start SIP Session
@@ -375,6 +382,7 @@ const hangupCall = async () => {
 
     // 2. Stop Recording
     stopRecording();
+    document.getElementById('recording-indicator').classList.add('hidden');
 
     // 3. Update UI to show the wrap-up modal
     document.getElementById('btn-hangup').classList.add('hidden');
