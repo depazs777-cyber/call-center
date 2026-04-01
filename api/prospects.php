@@ -82,8 +82,9 @@ try {
             }
 
             if ($search) {
-                $sql .= " AND (p.nombre LIKE :search OR p.telefono LIKE :search)";
+                $sql .= " AND (p.nombre LIKE :search OR p.telefono LIKE :search2)";
                 $params['search'] = "%$search%";
+                $params['search2'] = "%$search%";
             }
 
             if ($status) {
