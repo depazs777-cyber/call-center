@@ -242,6 +242,55 @@ window.showCrmSearch = async () => {
         </div>
     `;
 
+    const loadAllCrmProspects = async () => {
+        const resultsContainer = document.getElementById('crm-search-results');
+        resultsContainer.innerHTML = '<div class="col-span-full text-center text-gray-500 py-8">Cargando prospectos...</div>';
+
+        try {
+            const prospects = await apiFetch(`/prospects`);
+
+            if (prospects.length === 0) {
+                resultsContainer.innerHTML = '<div class="col-span-full text-center text-gray-500 py-8">No se encontraron prospectos</div>';
+                return;
+            }
+
+            renderCrmResults(prospects, resultsContainer);
+        } catch (err) {
+            resultsContainer.innerHTML = `<div class="col-span-full text-center text-red-500 py-8">Error: ${window.escapeHTML(err.message)}</div>`;
+        }
+    };
+
+    const renderCrmResults = (prospects, container) => {
+        let html = '';
+        prospects.forEach(p => {
+            let borderColor = 'border-gray-100';
+
+            if (!p.ultimo_estado) {
+                borderColor = 'border-red-500 border-2';
+            } else if (['No contestó', 'Buzón de voz'].includes(p.ultimo_estado)) {
+                borderColor = 'border-yellow-400 border-2';
+            } else if (['Venta efectiva', 'Cita agendada'].includes(p.ultimo_estado)) {
+                borderColor = 'border-green-500 border-2';
+            } else if (['Cliente no interesado', 'Equivocado'].includes(p.ultimo_estado)) {
+                borderColor = 'border-purple-500 border-2';
+            }
+
+            html += `
+                <div class="bg-white p-4 rounded-lg shadow ${borderColor} flex flex-col justify-between">
+                    <div>
+                        <h3 class="text-lg font-bold text-gray-900">${window.escapeHTML(p.nombre)}</h3>
+                        <p class="text-sm text-gray-600 mb-1"><i class="fas fa-phone mr-1"></i> ${window.escapeHTML(p.telefono)}</p>
+                        <p class="text-xs text-blue-600 font-semibold mb-2">${window.escapeHTML(p.campaña_nombre)}</p>
+                        <p class="text-xs text-gray-500 font-medium mb-2">Estado: ${window.escapeHTML(p.ultimo_estado || 'No gestionado')}</p>
+                    </div>
+                    <button onclick="window.viewProspectCRM(${p.id})" class="mt-4 w-full bg-blue-50 hover:bg-blue-100 text-blue-700 font-medium py-2 px-4 rounded border border-blue-200 transition">Ver CRM Completo</button>
+                </div>
+            `;
+        });
+
+        container.innerHTML = html;
+    };
+
     document.getElementById('crm-search-form').addEventListener('submit', async (e) => {
         e.preventDefault();
         const searchInput = document.getElementById('crm-search-input').value;
@@ -250,32 +299,23 @@ window.showCrmSearch = async () => {
         resultsContainer.innerHTML = '<div class="col-span-full text-center text-gray-500 py-8">Buscando...</div>';
 
         try {
-            const prospects = await apiFetch(`/prospects?search=${encodeURIComponent(searchInput)}`);
+            const url = searchInput.trim() ? `/prospects?search=${encodeURIComponent(searchInput)}` : '/prospects';
+            const prospects = await apiFetch(url);
 
             if (prospects.length === 0) {
                 resultsContainer.innerHTML = '<div class="col-span-full text-center text-gray-500 py-8">No se encontraron resultados</div>';
                 return;
             }
 
-            let html = '';
-            prospects.forEach(p => {
-                html += `
-                    <div class="bg-white p-4 rounded-lg shadow border border-gray-100 flex flex-col justify-between">
-                        <div>
-                            <h3 class="text-lg font-bold text-gray-900">${window.escapeHTML(p.nombre)}</h3>
-                            <p class="text-sm text-gray-600 mb-1"><i class="fas fa-phone mr-1"></i> ${window.escapeHTML(p.telefono)}</p>
-                            <p class="text-xs text-blue-600 font-semibold mb-2">${window.escapeHTML(p.campaña_nombre)}</p>
-                        </div>
-                        <button onclick="window.viewProspectCRM(${p.id})" class="mt-4 w-full bg-blue-50 hover:bg-blue-100 text-blue-700 font-medium py-2 px-4 rounded border border-blue-200 transition">Ver CRM Completo</button>
-                    </div>
-                `;
-            });
-
-            resultsContainer.innerHTML = html;
+            renderCrmResults(prospects, resultsContainer);
         } catch (err) {
             resultsContainer.innerHTML = `<div class="col-span-full text-center text-red-500 py-8">Error: ${window.escapeHTML(err.message)}</div>`;
         }
     });
+
+    // Load all on init
+    document.getElementById('crm-search-input').required = false; // Allow empty search to get all
+    loadAllCrmProspects();
 };
 
 window.saveCrmNotes = async () => {
